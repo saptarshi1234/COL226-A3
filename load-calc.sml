@@ -32,15 +32,61 @@ fun parse (lexer) =
     end
 	handle ParseError => (print(!err_str); OS.Process.exit(OS.Process.failure) [""])
 
-fun partially_concat_list [] = ""
-|	partially_concat_list ([a]) = a 
-|	partially_concat_list (a::x) = a ^ ", " ^ partially_concat_list(x)
+fun getTokenType tokenIndex = 
+	case tokenIndex of 
+		0 => "NOT"
+  | 1 => "AND"
+  | 2 => "OR"
+  | 3 => "XOR"
+  | 4 => "EQUALS"
+  | 5 => "IMPLIES"
+  | 6 => "IF"
+  | 7 => "THEN"
+  | 8 => "ELSE"
+  | 9 => "FI"
+  | 10 => "PLUS"
+  | 11 => "MINUS"
+  | 12 => "TIMES"
+  | 13 => "NEGATE"
+  | 14 => "LESSTHAN"
+  | 15 => "GREATERTHAN"
+  | 16 => "LPAREN"
+  | 17 => "RPAREN"
+  | 18 => "ID"
+  | 19 => "INTCONST"
+  | 20 => "BOOLCONST"
+  | 21 => "LET"
+  | 22 => "IN"
+  | 23 => "END"
+  | 24 => "ASSIGN"
+  | 25 => "TERM"
+  | 26 => "EOF"
+  | _ => "bogus-term"
 
-fun concat_list parsedString = "[" ^ partially_concat_list parsedString ^ "]\n"
+fun getTokens lexer = let
+    val dummyEOF = BoolLrVals.Tokens.EOF(0,0)
+		val (nextToken, lexer) = BoolParser.Stream.get lexer
+		val LrParser.Token.TOKEN(LrParser.LrTable.T(x),b) = nextToken
+	in 
+		if BoolParser.sameToken(nextToken, dummyEOF) then []
+		else (getTokenType x) :: (getTokens lexer)
+	end 
 
-val parseString = concat_list o parse o stringToLexer
 
-val printParsedString = print o parseString
+fun evaluateList [] = []
+|   evaluateList (a::x) = (EVALUATOR.evaluate(a, [])) :: (evaluateList x)
+
+val parseString = parse o stringToLexer
+val evaluateString = evaluateList o parseString
+val printTokens = getTokens o stringToLexer
+
+
+fun readString fileName = let
+    val inStream = TextIO.openIn fileName
+    val data = TextIO.inputAll inStream
+in 
+        (TextIO.closeIn inStream; data)
+end
 
 fun saveString data fileName = let
 	val outStream = TextIO.openOut(fileName)
@@ -49,5 +95,5 @@ in
     TextIO.closeOut outStream)
 end
 
-val saveParsedString = saveString o parseString
+val evalFromFile = evaluateString o readString
 
