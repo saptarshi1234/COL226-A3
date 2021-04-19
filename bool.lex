@@ -87,6 +87,15 @@ newline = [\n \r\n];
 ")"             =>  (update(yytext); Tokens.RPAREN(!pos, !col - size yytext ));  
 ";"             =>  (update(yytext); Tokens.TERM(!pos, !col - size yytext ));  
 
+"int"           =>  (update(yytext); Tokens.INT(!pos, !col - size yytext ));  
+"bool"          =>  (update(yytext); Tokens.BOOL(!pos, !col - size yytext ));  
+"->"            =>  (update(yytext); Tokens.ARROW(!pos, !col - size yytext ));  
+":"             =>  (update(yytext); Tokens.COLON(!pos, !col - size yytext ));  
+
+"fn"          =>  (update(yytext); Tokens.FN(!pos, !col - size yytext ));  
+"fun"          =>  (update(yytext); Tokens.FUN(!pos, !col - size yytext ));  
+
+
 {alpha}{alphadigit}*     =>  (update(yytext); Tokens.ID(yytext, !pos, !col - size yytext));
 {digit}+        =>  (update(yytext); Tokens.INTCONST((case (Int.fromString yytext) of SOME(x) => x | NONE =>0), !pos, !col - size yytext ));
 

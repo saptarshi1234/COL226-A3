@@ -10,6 +10,7 @@ val space  = " "
 | LPAREN  | RPAREN  
 | ID of string | INTCONST of int | BOOLCONST of bool 
 | LET | IN | END | ASSIGN
+| FN | FUN | INT | BOOL | ARROW | COLON
 | TERM  | EOF
 
 %nonterm  
@@ -17,7 +18,9 @@ val space  = " "
 | program of AST.exp list
 | statement of AST.exp
 | formula of AST.exp
-
+| expression of AST.exp
+| lambda of AST.exp
+| typ of AST.typ
 
 %pos int
 
@@ -27,6 +30,7 @@ val space  = " "
 (* header *)
 
 %nonassoc LET IN END
+%right ARROW COLON FN
 
 %right IF THEN ELSE FI
 %right IMPLIES
@@ -45,11 +49,21 @@ val space  = " "
 
 %%
 start       :   program (program)
-program     :   statement program (statement :: program) | formula ([formula])
-statement   :   formula TERM (formula)
+program     :   statement program (statement :: program) | expression ([expression])
+statement   :   expression TERM (expression)
+expression  :   formula (formula) 
+            |   FUN ID LPAREN ID COLON typ RPAREN COLON typ ARROW formula (AST.FunctionExp((AST.VarExp ID1), (AST.VarExp ID2), typ1, typ2, formula))
+
+typ         :   INT (AST.Int) | BOOL (AST.Bool) | typ ARROW typ (AST.Arrow(typ1, typ2)) | LPAREN typ RPAREN (typ)
+lambda      :   FN LPAREN ID COLON typ RPAREN COLON typ ARROW formula (AST.LambdaExp((AST.VarExp ID), typ1, typ2, formula))
 
 formula     :   IF formula THEN formula ELSE formula FI (AST.CondExp(formula1, formula2, formula3))
-            |   LET ID ASSIGN formula IN formula END (AST.LetExp(ID, formula1, formula2))
+            |   LET ID ASSIGN formula IN formula END (AST.LetExp( (AST.VarExp ID), formula1, formula2))
+            |   lambda (lambda)
+            |   LPAREN lambda formula RPAREN (AST.AppExp(lambda, formula))
+            |   LPAREN ID formula RPAREN (AST.AppExp((AST.VarExp ID), formula))
+            |   lambda formula (AST.AppExp(lambda, formula))
+            |   ID formula (AST.AppExp((AST.VarExp ID), formula))
             |   LPAREN formula RPAREN (formula1)
 
             |   formula IMPLIES formula (AST.BinExp(AST.Implies, formula1, formula2))

@@ -59,8 +59,14 @@ fun getTokenType tokenIndex =
   | 22 => "IN"
   | 23 => "END"
   | 24 => "ASSIGN"
-  | 25 => "TERM"
-  | 26 => "EOF"
+  | 25 => "FN"
+  | 26 => "FUN"
+  | 27 => "INT"
+  | 28 => "BOOL"
+  | 29 => "ARROW"
+  | 30 => "COLON"
+  | 31 => "TERM"
+  | 32 => "EOF"
   | _ => "bogus-term"
 
 fun getTokens lexer = let
@@ -73,8 +79,20 @@ fun getTokens lexer = let
 	end 
 
 
-fun evaluateList [] = []
-|   evaluateList (a::x) = (EVALUATOR.evaluate(a, [])) :: (evaluateList x)
+fun evaluateListInternal ([], env) = []
+|   evaluateListInternal ((a::x), env) = 
+    let 
+      open AST
+      val ans = EVALUATOR.evaluate(a, env)
+      val env = case ans of 
+        FunVal(name, arg, typ1, typ2, exp) => envAdd(name, ans, env)
+      | _ => env
+
+    in
+        ans :: (evaluateListInternal (x, env))
+    end
+
+fun evaluateList x = evaluateListInternal (x,[])
 
 val parseString = parse o stringToLexer
 val evaluateString = evaluateList o parseString
