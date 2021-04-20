@@ -22,6 +22,16 @@ struct
   datatype value = NumVal of int | BoolVal of bool | FunVal of id * id * typ * typ * exp * ((id * value) list)
   type environment = (id * value) list
 
+  fun getType (v: value) : typ = case v of 
+    NumVal(n)           =>  Int
+  | BoolVal(b)          =>  Bool
+  | FunVal(a,b,t1,t2,e,f) =>  Arrow(t1, t2)
+
+  fun typeToString(t:typ):string = case t of
+    Int           =>  "int"
+  | Bool          =>  "bool"
+  | Arrow(t1,t2)  =>  (typeToString t1) ^ "->" ^ (typeToString t2)
+
   fun envLookup (var : id, env : environment) : value =
     case List.find (fn (x, _) => x = var ) env of
       SOME (x, v) => v

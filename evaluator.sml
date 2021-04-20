@@ -6,6 +6,9 @@ struct
   fun xor a b = (a andalso not b) orelse (not a andalso b)
   fun implies a b = not a orelse b
 
+  fun getTypeError (expected, received) = 
+    raise Fail("Type mismatch: Expected " ^ (typeToString expected) ^ " received " ^ (typeToString received) )
+
 
   fun evalBinExp (BinExp(oper, exp1, exp2), env) = 
     let 
@@ -57,11 +60,19 @@ struct
     
   and applylambda(lval, arg_exp, env) = let
     val arg = evaluate (arg_exp, env)
-    val FunVal(_, id, typ1, typ2, function_body, env_internal) = lval
+    val FunVal(_, id, arg_typ, return_typ, function_body, env_internal) = lval
     val env_internal = envAdd(id, arg, env_internal)
     val ans = evaluate(function_body, env_internal @ env) 
+
+    val expected_params_type = (getType arg)
+    val expected_return_type = (getType ans)
+
+    val params_typed = expected_params_type = arg_typ
+    val return_typed = expected_return_type = return_typ
   in
-    ans
+    if params_typed then 
+      if return_typed then ans else getTypeError(expected_return_type, return_typ) 
+    else getTypeError(expected_params_type, arg_typ)  
   end
 
   (* fun getType exp =  *)
