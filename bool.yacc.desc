@@ -1,4 +1,4 @@
-8 shift/reduce conflicts
+9 shift/reduce conflicts
 
 error:  state 30: shift/reduce conflict (shift FN, reduce by rule 13)
 error:  state 30: shift/reduce conflict (shift LET, reduce by rule 13)
@@ -8,6 +8,7 @@ error:  state 30: shift/reduce conflict (shift ID, reduce by rule 13)
 error:  state 30: shift/reduce conflict (shift LPAREN, reduce by rule 13)
 error:  state 30: shift/reduce conflict (shift IF, reduce by rule 13)
 error:  state 30: shift/reduce conflict (shift NOT, reduce by rule 13)
+error:  state 71: shift/reduce conflict (shift ARROWTYP, reduce by rule 8)
 
 state 0:
 
@@ -23,7 +24,7 @@ state 0:
 	FN	shift 7
 	FUN	shift 6
 
-	start	goto 84
+	start	goto 83
 	program	goto 5
 	statement	goto 4
 	formula	goto 3
@@ -116,7 +117,7 @@ state 5:
 
 state 6:
 
-	expression : FUN . ID LPAREN ID COLON typ RPAREN COLON typ ARROW formula 
+	expression : FUN . ID LPAREN ID COLON typ RPAREN COLON typ ARROWDEF formula 
 
 	ID	shift 27
 
@@ -126,7 +127,7 @@ state 6:
 
 state 7:
 
-	lambda : FN . LPAREN ID COLON typ RPAREN COLON typ ARROW formula 
+	lambda : FN . LPAREN ID COLON typ RPAREN COLON typ ARROWDEF formula 
 
 	LPAREN	shift 28
 
@@ -440,7 +441,7 @@ state 26:
 
 state 27:
 
-	expression : FUN ID . LPAREN ID COLON typ RPAREN COLON typ ARROW formula 
+	expression : FUN ID . LPAREN ID COLON typ RPAREN COLON typ ARROWDEF formula 
 
 	LPAREN	shift 44
 
@@ -450,7 +451,7 @@ state 27:
 
 state 28:
 
-	lambda : FN LPAREN . ID COLON typ RPAREN COLON typ ARROW formula 
+	lambda : FN LPAREN . ID COLON typ RPAREN COLON typ ARROWDEF formula 
 
 	ID	shift 45
 
@@ -861,7 +862,7 @@ state 43:
 
 state 44:
 
-	expression : FUN ID LPAREN . ID COLON typ RPAREN COLON typ ARROW formula 
+	expression : FUN ID LPAREN . ID COLON typ RPAREN COLON typ ARROWDEF formula 
 
 	ID	shift 51
 
@@ -871,7 +872,7 @@ state 44:
 
 state 45:
 
-	lambda : FN LPAREN ID . COLON typ RPAREN COLON typ ARROW formula 
+	lambda : FN LPAREN ID . COLON typ RPAREN COLON typ ARROWDEF formula 
 
 	COLON	shift 52
 
@@ -988,7 +989,7 @@ state 50:
 
 state 51:
 
-	expression : FUN ID LPAREN ID . COLON typ RPAREN COLON typ ARROW formula 
+	expression : FUN ID LPAREN ID . COLON typ RPAREN COLON typ ARROWDEF formula 
 
 	COLON	shift 57
 
@@ -998,7 +999,7 @@ state 51:
 
 state 52:
 
-	lambda : FN LPAREN ID COLON . typ RPAREN COLON typ ARROW formula 
+	lambda : FN LPAREN ID COLON . typ RPAREN COLON typ ARROWDEF formula 
 
 	LPAREN	shift 61
 	INT	shift 60
@@ -1089,7 +1090,7 @@ state 56:
 
 state 57:
 
-	expression : FUN ID LPAREN ID COLON . typ RPAREN COLON typ ARROW formula 
+	expression : FUN ID LPAREN ID COLON . typ RPAREN COLON typ ARROWDEF formula 
 
 	LPAREN	shift 61
 	INT	shift 60
@@ -1102,11 +1103,11 @@ state 57:
 
 state 58:
 
-	lambda : FN LPAREN ID COLON typ . RPAREN COLON typ ARROW formula 
-	typ : typ . ARROW typ 
+	lambda : FN LPAREN ID COLON typ . RPAREN COLON typ ARROWDEF formula 
+	typ : typ . ARROWTYP typ 
 
 	RPAREN	shift 66
-	ARROW	shift 65
+	ARROWTYP	shift 65
 
 
 	.	error
@@ -1183,11 +1184,11 @@ state 63:
 
 state 64:
 
-	expression : FUN ID LPAREN ID COLON typ . RPAREN COLON typ ARROW formula 
-	typ : typ . ARROW typ 
+	expression : FUN ID LPAREN ID COLON typ . RPAREN COLON typ ARROWDEF formula 
+	typ : typ . ARROWTYP typ 
 
 	RPAREN	shift 70
-	ARROW	shift 65
+	ARROWTYP	shift 65
 
 
 	.	error
@@ -1195,7 +1196,7 @@ state 64:
 
 state 65:
 
-	typ : typ ARROW . typ 
+	typ : typ ARROWTYP . typ 
 
 	LPAREN	shift 61
 	INT	shift 60
@@ -1208,7 +1209,7 @@ state 65:
 
 state 66:
 
-	lambda : FN LPAREN ID COLON typ RPAREN . COLON typ ARROW formula 
+	lambda : FN LPAREN ID COLON typ RPAREN . COLON typ ARROWDEF formula 
 
 	COLON	shift 72
 
@@ -1218,11 +1219,11 @@ state 66:
 
 state 67:
 
-	typ : typ . ARROW typ 
+	typ : typ . ARROWTYP typ 
 	typ : LPAREN typ . RPAREN 
 
 	RPAREN	shift 73
-	ARROW	shift 65
+	ARROWTYP	shift 65
 
 
 	.	error
@@ -1290,20 +1291,21 @@ state 69:
 
 state 70:
 
-	expression : FUN ID LPAREN ID COLON typ RPAREN . COLON typ ARROW formula 
+	expression : FUN ID LPAREN ID COLON typ RPAREN . COLON typ ARROWDEF formula 
 
 	COLON	shift 76
 
 
 	.	error
 
+error:  state 71: shift/reduce conflict (shift ARROWTYP, reduce by rule 8)
 
 state 71:
 
-	typ : typ . ARROW typ 
-	typ : typ ARROW typ .  (reduce by rule 8)
+	typ : typ . ARROWTYP typ 
+	typ : typ ARROWTYP typ .  (reduce by rule 8)
 
-	ARROW	shift 65
+	ARROWTYP	shift 65
 
 
 	.	reduce by rule 8
@@ -1311,7 +1313,7 @@ state 71:
 
 state 72:
 
-	lambda : FN LPAREN ID COLON typ RPAREN COLON . typ ARROW formula 
+	lambda : FN LPAREN ID COLON typ RPAREN COLON . typ ARROWDEF formula 
 
 	LPAREN	shift 61
 	INT	shift 60
@@ -1351,7 +1353,7 @@ state 75:
 
 state 76:
 
-	expression : FUN ID LPAREN ID COLON typ RPAREN COLON . typ ARROW formula 
+	expression : FUN ID LPAREN ID COLON typ RPAREN COLON . typ ARROWDEF formula 
 
 	LPAREN	shift 61
 	INT	shift 60
@@ -1364,10 +1366,11 @@ state 76:
 
 state 77:
 
-	lambda : FN LPAREN ID COLON typ RPAREN COLON typ . ARROW formula 
-	typ : typ . ARROW typ 
+	lambda : FN LPAREN ID COLON typ RPAREN COLON typ . ARROWDEF formula 
+	typ : typ . ARROWTYP typ 
 
-	ARROW	shift 79
+	ARROWTYP	shift 65
+	ARROWDEF	shift 79
 
 
 	.	error
@@ -1375,10 +1378,11 @@ state 77:
 
 state 78:
 
-	expression : FUN ID LPAREN ID COLON typ RPAREN COLON typ . ARROW formula 
-	typ : typ . ARROW typ 
+	expression : FUN ID LPAREN ID COLON typ RPAREN COLON typ . ARROWDEF formula 
+	typ : typ . ARROWTYP typ 
 
-	ARROW	shift 80
+	ARROWTYP	shift 65
+	ARROWDEF	shift 80
 
 
 	.	error
@@ -1386,46 +1390,38 @@ state 78:
 
 state 79:
 
-	lambda : FN LPAREN ID COLON typ RPAREN COLON typ ARROW . formula 
-	typ : typ ARROW . typ 
+	lambda : FN LPAREN ID COLON typ RPAREN COLON typ ARROWDEF . formula 
 
 	NOT	shift 14
 	IF	shift 13
-	LPAREN	shift 82
+	LPAREN	shift 12
 	ID	shift 11
 	INTCONST	shift 10
 	BOOLCONST	shift 9
 	LET	shift 8
 	FN	shift 7
-	INT	shift 60
-	BOOL	shift 59
 
 	formula	goto 81
 	lambda	goto 1
-	typ	goto 71
 
 	.	error
 
 
 state 80:
 
-	expression : FUN ID LPAREN ID COLON typ RPAREN COLON typ ARROW . formula 
-	typ : typ ARROW . typ 
+	expression : FUN ID LPAREN ID COLON typ RPAREN COLON typ ARROWDEF . formula 
 
 	NOT	shift 14
 	IF	shift 13
-	LPAREN	shift 82
+	LPAREN	shift 12
 	ID	shift 11
 	INTCONST	shift 10
 	BOOLCONST	shift 9
 	LET	shift 8
 	FN	shift 7
-	INT	shift 60
-	BOOL	shift 59
 
-	formula	goto 83
+	formula	goto 82
 	lambda	goto 1
-	typ	goto 71
 
 	.	error
 
@@ -1442,7 +1438,7 @@ state 81:
 	formula : formula . TIMES formula 
 	formula : formula . GREATERTHAN formula 
 	formula : formula . LESSTHAN formula 
-	lambda : FN LPAREN ID COLON typ RPAREN COLON typ ARROW formula .  (reduce by rule 10)
+	lambda : FN LPAREN ID COLON typ RPAREN COLON typ ARROWDEF formula .  (reduce by rule 10)
 
 	AND	shift 25
 	OR	shift 24
@@ -1461,31 +1457,6 @@ state 81:
 
 state 82:
 
-	formula : LPAREN . lambda formula RPAREN 
-	formula : LPAREN . formula formula RPAREN 
-	formula : LPAREN . formula RPAREN 
-	typ : LPAREN . typ RPAREN 
-
-	NOT	shift 14
-	IF	shift 13
-	LPAREN	shift 82
-	ID	shift 11
-	INTCONST	shift 10
-	BOOLCONST	shift 9
-	LET	shift 8
-	FN	shift 7
-	INT	shift 60
-	BOOL	shift 59
-
-	formula	goto 31
-	lambda	goto 30
-	typ	goto 67
-
-	.	error
-
-
-state 83:
-
 	formula : formula . IMPLIES formula 
 	formula : formula . AND formula 
 	formula : formula . OR formula 
@@ -1496,7 +1467,7 @@ state 83:
 	formula : formula . TIMES formula 
 	formula : formula . GREATERTHAN formula 
 	formula : formula . LESSTHAN formula 
-	expression : FUN ID LPAREN ID COLON typ RPAREN COLON typ ARROW formula .  (reduce by rule 5)
+	expression : FUN ID LPAREN ID COLON typ RPAREN COLON typ ARROWDEF formula .  (reduce by rule 5)
 
 	AND	shift 25
 	OR	shift 24
@@ -1513,7 +1484,7 @@ state 83:
 	.	reduce by rule 5
 
 
-state 84:
+state 83:
 
 
 	EOF	accept
@@ -1521,5 +1492,5 @@ state 84:
 
 	.	error
 
-269 of 526 action table entries left after compaction
-64 goto table entries
+261 of 513 action table entries left after compaction
+59 goto table entries

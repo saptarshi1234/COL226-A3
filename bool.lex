@@ -89,7 +89,8 @@ newline = [\n \r\n];
 
 "int"           =>  (update(yytext); Tokens.INT(!pos, !col - size yytext ));  
 "bool"          =>  (update(yytext); Tokens.BOOL(!pos, !col - size yytext ));  
-"->"            =>  (update(yytext); Tokens.ARROW(!pos, !col - size yytext ));  
+"->"            =>  (update(yytext); Tokens.ARROWTYP(!pos, !col - size yytext ));  
+"=>"            =>  (update(yytext); Tokens.ARROWDEF(!pos, !col - size yytext ));  
 ":"             =>  (update(yytext); Tokens.COLON(!pos, !col - size yytext ));  
 
 "fn"          =>  (update(yytext); Tokens.FN(!pos, !col - size yytext ));  

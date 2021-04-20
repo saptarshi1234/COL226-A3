@@ -1,2 +1,2 @@
-fun F2 (f:int->int):int -> (f 2);
-(F2 fn (x:int):int -> x TIMES 3)
+fun F2 (f:int->int):int => (f 2);
+(F2 fn (x:int):int => x TIMES 3)

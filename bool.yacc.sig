@@ -5,7 +5,8 @@ type svalue
 val EOF:  'a * 'a -> (svalue,'a) token
 val TERM:  'a * 'a -> (svalue,'a) token
 val COLON:  'a * 'a -> (svalue,'a) token
-val ARROW:  'a * 'a -> (svalue,'a) token
+val ARROWDEF:  'a * 'a -> (svalue,'a) token
+val ARROWTYP:  'a * 'a -> (svalue,'a) token
 val BOOL:  'a * 'a -> (svalue,'a) token
 val INT:  'a * 'a -> (svalue,'a) token
 val FUN:  'a * 'a -> (svalue,'a) token

@@ -10,7 +10,7 @@ val space  = " "
 | LPAREN  | RPAREN  
 | ID of string | INTCONST of int | BOOLCONST of bool 
 | LET | IN | END | ASSIGN
-| FN | FUN | INT | BOOL | ARROW | COLON
+| FN | FUN | INT | BOOL | ARROWTYP | ARROWDEF | COLON
 | TERM  | EOF
 
 %nonterm  
@@ -30,7 +30,7 @@ val space  = " "
 (* header *)
 
 %nonassoc LET IN END
-%right ARROW COLON FN
+%right ARROWDEF COLON FN
 
 %right IF THEN ELSE FI
 %right IMPLIES
@@ -52,10 +52,10 @@ start       :   program (program)
 program     :   statement program (statement :: program) | expression ([expression])
 statement   :   expression TERM (expression)
 expression  :   formula (formula) 
-            |   FUN ID LPAREN ID COLON typ RPAREN COLON typ ARROW formula (AST.FunctionExp((AST.VarExp ID1), (AST.VarExp ID2), typ1, typ2, formula))
+            |   FUN ID LPAREN ID COLON typ RPAREN COLON typ ARROWDEF formula (AST.FunctionExp((AST.VarExp ID1), (AST.VarExp ID2), typ1, typ2, formula))
 
-typ         :   INT (AST.Int) | BOOL (AST.Bool) | typ ARROW typ (AST.Arrow(typ1, typ2)) | LPAREN typ RPAREN (typ)
-lambda      :   FN LPAREN ID COLON typ RPAREN COLON typ ARROW formula (AST.LambdaExp((AST.VarExp ID), typ1, typ2, formula))
+typ         :   INT (AST.Int) | BOOL (AST.Bool) | typ ARROWTYP typ (AST.Arrow(typ1, typ2)) | LPAREN typ RPAREN (typ)
+lambda      :   FN LPAREN ID COLON typ RPAREN COLON typ ARROWDEF formula (AST.LambdaExp((AST.VarExp ID), typ1, typ2, formula))
 
 formula     :   IF formula THEN formula ELSE formula FI (AST.CondExp(formula1, formula2, formula3))
             |   LET ID ASSIGN formula IN formula END (AST.LetExp( (AST.VarExp ID), formula1, formula2))

@@ -1,4 +1,4 @@
-fun xor (x:bool):(bool->bool) -> fn (y:bool):bool -> (x AND NOT y) OR (NOT x AND y);
+fun xor (x:bool):(bool->bool) => fn (y:bool):bool => (x AND NOT y) OR (NOT x AND y);
 ((xor TRUE) TRUE) EQUALS FALSE;
 ((xor TRUE) FALSE) EQUALS TRUE;
 ((xor FALSE) TRUE) EQUALS TRUE;
