@@ -61,9 +61,8 @@ formula     :   IF formula THEN formula ELSE formula FI (AST.CondExp(formula1, f
             |   LET ID ASSIGN formula IN formula END (AST.LetExp( (AST.VarExp ID), formula1, formula2))
             |   lambda (lambda)
             |   LPAREN lambda formula RPAREN (AST.AppExp(lambda, formula))
-            |   LPAREN ID formula RPAREN (AST.AppExp((AST.VarExp ID), formula))
-            |   lambda formula (AST.AppExp(lambda, formula))
-            |   ID formula (AST.AppExp((AST.VarExp ID), formula))
+            |   LPAREN formula formula RPAREN (AST.AppExp(formula1, formula2))
+
             |   LPAREN formula RPAREN (formula1)
 
             |   formula IMPLIES formula (AST.BinExp(AST.Implies, formula1, formula2))

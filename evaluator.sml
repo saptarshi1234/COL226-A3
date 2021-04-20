@@ -34,7 +34,7 @@ struct
       case (oper, val1) of 
         (Not, BoolVal(b))   =>  BoolVal(not b)
       | (Negate, NumVal(n)) =>  NumVal(~n)
-      | _                             => raise Fail("broken types")
+      | _                   => raise Fail("broken types")
     end
 
   and evaluateCondExp(CondExp(exp1, exp2, exp3), env) = 
@@ -49,22 +49,23 @@ struct
       | _                                       =>  raise Fail("broken types")
     end
 
-  and apply(name, exp, env) = let 
-    val value = envLookup(name, env)
-    val lambda = case value of 
-      FunVal(name, arg, typ1, typ2, function_body)  =>  LambdaVal(arg, typ1, typ2, function_body)
-    | _                                             =>  value
+  and applyfunction(name, exp, env) = let 
+    val lambda = envLookup(name, env)
     in 
       applylambda(lambda, exp, env)
     end
-  
+    
   and applylambda(lval, arg_exp, env) = let
     val arg = evaluate (arg_exp, env)
-    val LambdaVal(id, typ1, typ2, function_body) = lval
-    val ans = evaluate(function_body, envAdd(id, arg, env))
+    val FunVal(_, id, typ1, typ2, function_body, env_internal) = lval
+    val env_internal = envAdd(id, arg, env_internal)
+    val ans = evaluate(function_body, env_internal @ env) 
   in
     ans
   end
+
+  (* fun getType exp =  *)
+    (* cas *)
 
 
   and evaluate (ast: AST.exp, env:environment): value =
@@ -76,10 +77,12 @@ struct
     | BinExp(oper, exp1, exp2)                                =>  evalBinExp(ast, env)
     | UnaryExp(unop, exp)                                     =>  evalUnaryExp(ast, env)
     | CondExp(exp1, exp2, exp3)                               =>  evaluateCondExp(ast, env)
-    | AppExp(VarExp(name), exp)                               =>  apply(name, exp, env)
-    | LambdaExp(VarExp(id), typ1, typ2, exp)                  =>  LambdaVal(id, typ1, typ2, exp)
-    | AppExp(l_exp, exp)                                      =>  applylambda(evaluate (l_exp, env), exp, env)   (* evn or e ?? *)  
-    | FunctionExp(VarExp(name), VarExp(arg), typ1, typ2, exp) =>  FunVal(name, arg, typ1, typ2, exp)
+
+    | AppExp(VarExp(name), exp)                               =>  applyfunction(name, exp, env)
+    | AppExp(fexp, exp)                                       =>  applylambda(evaluate(fexp, env), exp, env)   (* evn or e ?? *)  
+    
+    | FunctionExp(VarExp(name), VarExp(arg), typ1, typ2, exp) =>  FunVal(name, arg, typ1, typ2, exp, env)
+    | LambdaExp(VarExp(id), typ1, typ2, exp)                  =>  FunVal("", id, typ1, typ2, exp, env)
     | _                                                       =>  raise Fail("broken types")
     
 end

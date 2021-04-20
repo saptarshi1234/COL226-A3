@@ -18,19 +18,17 @@ struct
   | FunctionExp of exp * exp * typ * typ * exp
   | AppExp of exp * exp 
 
-  datatype value = NumVal of int | BoolVal of bool | LambdaVal of id * typ * typ * exp |  FunVal of id * id * typ * typ * exp
 
+  datatype value = NumVal of int | BoolVal of bool | FunVal of id * id * typ * typ * exp * ((id * value) list)
   type environment = (id * value) list
-
-
-
 
   fun envLookup (var : id, env : environment) : value =
     case List.find (fn (x, _) => x = var ) env of
       SOME (x, v) => v
-    | NONE => raise Fail "Evaluation Error"
+    | NONE => raise Fail ("could not find variable: " ^ var)
 
 
   fun envAdd(var : id , v : value , env : environment ) =
     (var, v) :: env
+
 end

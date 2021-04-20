@@ -85,7 +85,8 @@ fun evaluateListInternal ([], env) = []
       open AST
       val ans = EVALUATOR.evaluate(a, env)
       val env = case ans of 
-        FunVal(name, arg, typ1, typ2, exp) => envAdd(name, ans, env)
+         FunVal("", arg, typ1, typ2, exp, params)   => env
+      |  FunVal(name, arg, typ1, typ2, exp, params) => envAdd(name, ans, env)
       | _ => env
 
     in
@@ -114,4 +115,4 @@ in
 end
 
 val evalFromFile = evaluateString o readString
-
+val parseFromFile = parseString o readString
