@@ -1,0 +1,2 @@
+fun f (x:int->int):int->int => fn (y:int):int => (x (y TIMES 1));
+((f fn (y:int):int => y PLUS 4) 2)

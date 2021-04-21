@@ -43,13 +43,16 @@ struct
   and evaluateCondExp(CondExp(exp1, exp2, exp3), env) = 
     let 
       val val1 = evaluate (exp1, env)
-      val val2 = evaluate (exp2, env)
-      val val3 = evaluate (exp3, env)
     in 
-      case (val1, val2, val3) of 
+      case val1 of 
+        BoolVal(b)    => if b then evaluate (exp2, env) else evaluate(exp3, env)
+        | _           =>  raise Fail("broken types") 
+      
+      (* case (val1, val2, val3) of 
         (BoolVal(b), NumVal(n2), NumVal(n3))    =>  NumVal(if b then n2 else n3)
       | (BoolVal(b), BoolVal(b2), BoolVal(b3))  =>  BoolVal(if b then b2 else b3)
-      | _                                       =>  raise Fail("broken types")
+      | (BoolVal(b), )
+      | _                                       =>  (print (getTypeString val2); print (getTypeString val3);raise Fail("broken types")) *)
     end
 
   and applyfunction(name, exp, env) = let 
@@ -89,11 +92,77 @@ struct
     | UnaryExp(unop, exp)                                     =>  evalUnaryExp(ast, env)
     | CondExp(exp1, exp2, exp3)                               =>  evaluateCondExp(ast, env)
 
-    | AppExp(VarExp(name), exp)                               =>  applyfunction(name, exp, env)
+    (* | AppExp(VarExp(name), exp)                               =>  applyfunction(name, exp, env) *)
     | AppExp(fexp, exp)                                       =>  applylambda(evaluate(fexp, env), exp, env)   (* evn or e ?? *)  
     
     | FunctionExp(VarExp(name), VarExp(arg), typ1, typ2, exp) =>  FunVal(name, arg, typ1, typ2, exp, env)
     | LambdaExp(VarExp(id), typ1, typ2, exp)                  =>  FunVal("", id, typ1, typ2, exp, env)
     | _                                                       =>  raise Fail("broken types")
+  
+  
+  fun computeTypes (ast : AST.exp, env:type_env) = 
+        case ast of 
+      NumExp(num)                                             =>  Int
+    | BoolExp(b)                                              =>  Bool
+    | VarExp(id)                                              =>  envLookup (id, env)
+    | LetExp(VarExp(var_id), var_val, exp)                    =>  computeTypes (exp, envAdd(var_id, computeTypes(var_val, env), env) )
+    | BinExp(oper, exp1, exp2)                                =>  
+        let 
+          val t1 = computeTypes (exp1, env)
+          val t2 = computeTypes (exp2, env)
+        in case oper of 
+          Plus => if t1 = Int andalso t2 = Int then Int else raise Fail("Plus")
+        | Minus => if t1 = Int andalso t2 = Int then Int else raise Fail("Minus")
+        | Times => if t1 = Int andalso t2 = Int then Int else raise Fail("Times")
+
+        | GreaterThan => if t1 = Int andalso t2 = Int then Bool else raise Fail("GreaterThan")
+        | LessThan => if t1 = Int andalso t2 = Int then Bool else raise Fail("LessThan")
+
+        | And => if t1 = Bool andalso t2 = Bool then Bool else raise Fail("And")
+        | Or => if t1 = Bool andalso t2 = Bool then Bool else raise Fail("Or")
+        | Xor => if t1 = Bool andalso t2 = Bool then Bool else raise Fail("Xor")
+        | Equals => if (t1 = Bool andalso t2 = Bool) orelse (t1 = Int andalso t2 = Int) then Bool else raise Fail("Equals")
+        | Implies => if t1 = Bool andalso t2 = Bool then Bool else raise Fail("Implies")
+        end
+    | UnaryExp(oper, exp)                                     =>
+        let val t = computeTypes (exp, env)
+        in case oper of 
+          Not => if t = Bool then Bool else raise Fail("Not")
+        | Negate => if t = Int then Int else raise Fail("Int")
+        end
+
+
+    | CondExp(exp1, exp2, exp3)                               =>  
+        let
+          val t1 = computeTypes (exp1, env)
+          val t2 = computeTypes (exp2, env)
+          val t3 = computeTypes (exp3, env)
+        in
+          if t1 = Bool andalso t2 = t3 then (print(typeToString(t1) ^ "\n");t2)
+          (* else raise Fail("IF") *)
+          else (print(typeToString t1);print(typeToString t2);print(typeToString t3);raise Fail("IF"))
+        end
+
+          
+
+    | AppExp(fexp, exp)                                       =>   
+        (case (computeTypes (fexp, env)) of 
+          Arrow(arg, ret) => if (computeTypes (exp, env)) = arg then ret else raise Fail("Wrong arguments passed")
+        | _               => (print (typeToString (computeTypes(fexp, env)) ); raise Fail("Wrong application")) )
     
+    | FunctionExp(VarExp(name), VarExp(arg), typ1, typ2, exp) =>  
+        let 
+          val body = computeTypes (exp, envAdd( name, Arrow(typ1, typ2), envAdd(arg, typ1, env)) )
+        in 
+          if body = typ2 then Arrow(typ1, typ2) 
+          else raise Fail("failed type checks expected:" ^ typeToString(typ2) ^ " got " ^ typeToString(body))
+        end 
+    | LambdaExp(VarExp(arg), typ1, typ2, exp)                  =>  
+        let 
+          val body = computeTypes (exp, envAdd(arg, typ1, env)) 
+        in 
+          if body = typ2 then Arrow(typ1, typ2) 
+          else raise Fail("failed type checks expected:" ^ typeToString(typ2) ^ " got " ^ typeToString(body))
+        end 
+    | _                                                       =>  raise Fail("F")
 end

@@ -79,21 +79,36 @@ fun getTokens lexer = let
 	end 
 
 
-fun evaluateListInternal ([], env) = []
-|   evaluateListInternal ((a::x), env) = 
+fun evaluateListInternal ([], env, env_types) = []
+|   evaluateListInternal ((a::x), env, env_types) = 
     let 
       open AST
+      val curr_type = EVALUATOR.computeTypes(a, env_types)
       val ans = EVALUATOR.evaluate(a, env)
+      val (env, env_types) = case ans of 
+         FunVal("", arg, typ1, typ2, exp, params)   => (env, env_types)
+      |  FunVal(name, arg, typ1, typ2, exp, params) => (envAdd(name, ans, env), envAdd(name, curr_type, env_types))
+      | _ => (env, env_types)
+
+    in
+        ans :: (evaluateListInternal (x, env, env_types))
+    end
+
+(* fun checkTypes ([], env) = []
+|   checkTypes ((a::x), env) = 
+    let 
+      open AST
+      val ans = EVALUATOR.computeTypes(a, env)
       val env = case ans of 
          FunVal("", arg, typ1, typ2, exp, params)   => env
       |  FunVal(name, arg, typ1, typ2, exp, params) => envAdd(name, ans, env)
       | _ => env
 
     in
-        ans :: (evaluateListInternal (x, env))
-    end
+        ans :: (checkTypes (x, env))
+    end *)
 
-fun evaluateList x = evaluateListInternal (x,[])
+fun evaluateList x = evaluateListInternal (x,[], [])
 
 val parseString = parse o stringToLexer
 val evaluateString = evaluateList o parseString
