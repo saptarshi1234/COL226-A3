@@ -16,7 +16,6 @@ val space  = " "
 %nonterm  
   start of AST.exp list 
 | program of AST.exp list
-| statement of AST.exp
 | formula of AST.exp
 | expression of AST.exp
 | lambda of AST.exp
@@ -29,8 +28,8 @@ val space  = " "
 
 (* header *)
 
-%nonassoc LET IN END
-%right ARROWDEF COLON FN
+%right LET IN END ASSIGN
+%right ARROWDEF COLON FN FUN ARROWTYP
 
 %right IF THEN ELSE FI
 %right IMPLIES
@@ -49,8 +48,7 @@ val space  = " "
 
 %%
 start       :   program (program)
-program     :   statement program (statement :: program) | expression ([expression])
-statement   :   expression TERM (expression)
+program     :   expression TERM program (expression :: program) | expression ([expression])
 expression  :   formula (formula) 
             |   FUN ID LPAREN ID COLON typ RPAREN COLON typ ARROWDEF formula (AST.FunctionExp((AST.VarExp ID1), (AST.VarExp ID2), typ1, typ2, formula))
 
@@ -60,7 +58,6 @@ lambda      :   FN LPAREN ID COLON typ RPAREN COLON typ ARROWDEF formula (AST.La
 formula     :   IF formula THEN formula ELSE formula FI (AST.CondExp(formula1, formula2, formula3))
             |   LET ID ASSIGN formula IN formula END (AST.LetExp( (AST.VarExp ID), formula1, formula2))
             |   lambda (lambda)
-            |   LPAREN lambda formula RPAREN (AST.AppExp(lambda, formula))
             |   LPAREN formula formula RPAREN (AST.AppExp(formula1, formula2))
 
             |   LPAREN formula RPAREN (formula1)

@@ -1,7 +1,10 @@
-run:
-	ml-lex bool.lex
-	ml-yacc bool.yacc
-	rlwrap sml loader.sml
+all:
+	mllex bool.lex
+	mlyacc bool.yacc
+	mlton -output a3 bundler.mlb
+
+rebuild: clean all
+
 clean:
 	rm bool.lex.*
 	rm bool.yacc.*

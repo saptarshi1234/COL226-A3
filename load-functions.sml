@@ -32,87 +32,33 @@ fun parse (lexer) =
     end
 	handle ParseError => (print(!err_str); OS.Process.exit(OS.Process.failure) [""])
 
-fun getTokenType tokenIndex = 
-	case tokenIndex of 
-		0 => "NOT"
-  | 1 => "AND"
-  | 2 => "OR"
-  | 3 => "XOR"
-  | 4 => "EQUALS"
-  | 5 => "IMPLIES"
-  | 6 => "IF"
-  | 7 => "THEN"
-  | 8 => "ELSE"
-  | 9 => "FI"
-  | 10 => "PLUS"
-  | 11 => "MINUS"
-  | 12 => "TIMES"
-  | 13 => "NEGATE"
-  | 14 => "LESSTHAN"
-  | 15 => "GREATERTHAN"
-  | 16 => "LPAREN"
-  | 17 => "RPAREN"
-  | 18 => "ID"
-  | 19 => "INTCONST"
-  | 20 => "BOOLCONST"
-  | 21 => "LET"
-  | 22 => "IN"
-  | 23 => "END"
-  | 24 => "ASSIGN"
-  | 25 => "FN"
-  | 26 => "FUN"
-  | 27 => "INT"
-  | 28 => "BOOL"
-  | 29 => "ARROW"
-  | 30 => "COLON"
-  | 31 => "TERM"
-  | 32 => "EOF"
-  | _ => "bogus-term"
 
-fun getTokens lexer = let
-    val dummyEOF = BoolLrVals.Tokens.EOF(0,0)
-		val (nextToken, lexer) = BoolParser.Stream.get lexer
-		val LrParser.Token.TOKEN(LrParser.LrTable.T(x),b) = nextToken
-	in 
-		if BoolParser.sameToken(nextToken, dummyEOF) then []
-		else (getTokenType x) :: (getTokens lexer)
-	end 
-
-
-fun evaluateListInternal ([], env, env_types) = []
-|   evaluateListInternal ((a::x), env, env_types) = 
+fun evaluateListInternal ([], env, env_types, index) = []
+|   evaluateListInternal ((a::x), env, env_types, index) = 
     let 
       open AST
+      val _ = print ("Expression " ^ (Int.toString index) ^ " ::\n\t" ^ expToString(a) ^ "\n")
+      val _ = print ("AST /> \t" ^ (expToTree a) ^ "\n")
       val curr_type = EVALUATOR.computeTypes(a, env_types)
+      val _ = print "type checking passed\n"
       val ans = EVALUATOR.evaluate(a, env)
+      val _ = print ("Value : " ^ (valToString ans) ^ "\n" )
       val (env, env_types) = case ans of 
          FunVal("", arg, typ1, typ2, exp, params)   => (env, env_types)
       |  FunVal(name, arg, typ1, typ2, exp, params) => (envAdd(name, ans, env), envAdd(name, curr_type, env_types))
       | _ => (env, env_types)
 
+      val _ = print("\n")
+
     in
-        ans :: (evaluateListInternal (x, env, env_types))
+        ans :: (evaluateListInternal (x, env, env_types, index + 1)) 
     end
 
-(* fun checkTypes ([], env) = []
-|   checkTypes ((a::x), env) = 
-    let 
-      open AST
-      val ans = EVALUATOR.computeTypes(a, env)
-      val env = case ans of 
-         FunVal("", arg, typ1, typ2, exp, params)   => env
-      |  FunVal(name, arg, typ1, typ2, exp, params) => envAdd(name, ans, env)
-      | _ => env
-
-    in
-        ans :: (checkTypes (x, env))
-    end *)
-
-fun evaluateList x = evaluateListInternal (x,[], [])
+fun evaluateList x = evaluateListInternal (x,[], [], 1)
 
 val parseString = parse o stringToLexer
 val evaluateString = evaluateList o parseString
-val printTokens = getTokens o stringToLexer
+(* val printTokens = getTokens o stringToLexer *)
 
 
 fun readString fileName = let

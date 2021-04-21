@@ -1,0 +1,5 @@
+let
+	f=fn(x:int):int => x PLUS 4
+in
+	((f 4) 1)
+end

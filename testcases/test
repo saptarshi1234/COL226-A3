@@ -1,2 +1,2 @@
-fun f (x:int):(int->int) => (fn (y:int):int => x PLUS y);
+fun f (x:int):(int->int) => fn (y:int):int => x PLUS y;
 let f1 = (f 1) in (f1 3) end
