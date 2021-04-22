@@ -32,7 +32,7 @@ struct
       | (Equals, NumVal(v1), NumVal(v2))        => BoolVal(v1 = v2)
       | (Equals, BoolVal(v1), BoolVal(v2))      => BoolVal(v1 = v2)
       | (Implies, BoolVal(v1), BoolVal(v2))     => BoolVal(implies v1 v2)
-      | _                                       => raise Fail("\n\t" ^ "broken types")
+      | _                                       => raise Fail("\n\t" ^ "broken1 types " ^ (expToString exp1) ^ " " ^ (expToString exp2)) 
     end
 
   and evalUnaryExp ((oper, exp), env) = 
@@ -42,7 +42,7 @@ struct
       case (oper, val1) of 
         (Not, BoolVal(b))   =>  BoolVal(not b)
       | (Negate, NumVal(n)) =>  NumVal(~n)
-      | _                   => raise Fail("\n\t" ^ "broken types")
+      | _                   => raise Fail("\n\t" ^ "broken2 types")
     end
 
   and evaluateCondExp((exp1, exp2, exp3), env) = 
@@ -51,7 +51,7 @@ struct
     in 
       case val1 of 
         BoolVal(b)    => if b then evaluate (exp2, env) else evaluate(exp3, env)
-        | _           =>  raise Fail("\n\t" ^ "broken types") 
+        | _           =>  raise Fail("\n\t" ^ "broken3 types") 
     end
 
     
@@ -60,7 +60,7 @@ struct
     val p = case lval of 
       FunVal(_, id, arg_typ, return_typ, function_body, env_internal) => 
         (id, arg_typ, return_typ, function_body, env_internal) 
-      | _ => raise Fail("Broken Types")
+      | _ => raise Fail("Broken4 Types")
     val (id, arg_typ, return_typ, function_body, env_internal) = p
     val env_internal = envAdd(id, arg, env_internal)
     val ans = evaluate(function_body, env_internal @ env) 
@@ -71,9 +71,7 @@ struct
     val params_typed = expected_params_type = arg_typ
     val return_typed = expected_return_type = return_typ
   in
-    if params_typed then 
-      if return_typed then ans else getTypeError(expected_return_type, return_typ) 
-    else getTypeError(expected_params_type, arg_typ)  
+    ans
   end
 
   (* fun getType exp =  *)
@@ -81,7 +79,8 @@ struct
 
 
   and evaluate (ast: AST.exp, env:environment): value =
-    case ast of 
+(*     (print (Int.toString(length env) ^ " ");  *)
+    case ast of
       NumExp(num)                                             =>  NumVal(num)
     | BoolExp(b)                                              =>  BoolVal(b)
     | VarExp(id)                                              =>  envLookup(id, env)
@@ -92,8 +91,8 @@ struct
     | AppExp(fexp, exp)                                       =>  applylambda(evaluate(fexp, env), exp, env)   (* evn or e ?? *)  
     | FunctionExp(VarExp(name), VarExp(arg), typ1, typ2, exp) =>  FunVal(name, arg, typ1, typ2, exp, env)
     | LambdaExp(VarExp(id), typ1, typ2, exp)                  =>  FunVal("", id, typ1, typ2, exp, env)
-    | _                                                       =>  raise Fail("\n\t" ^ "broken types")
-  
+    | _                                                       =>  raise Fail("\n\t" ^ "broken5 types")
+(*   ) *)
   fun opErr(oper, expected_type, act_type, exp) = raise Fail("\n\t" ^ "OperatorOperandMismatch -> " ^ oper ^ " expected: " ^ expected_type ^ ", received: " ^ act_type ^ " in expr: " ^ (expToString exp) ) 
   
   fun compose (t1: typ, t2:typ) = "(" ^ typeToString(t1) ^ "*" ^ typeToString(t2) ^ ")" 

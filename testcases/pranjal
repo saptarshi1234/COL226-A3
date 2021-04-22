@@ -1,0 +1,5 @@
+let x = fn (x:int):int->bool => 
+	fn (y:int):bool => x EQUALS y 
+in 
+	((x 3) 5) 
+end

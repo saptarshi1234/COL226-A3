@@ -1,0 +1,9 @@
+let 
+  f = fn (x:int): int => x PLUS 1
+in
+  let
+    b = fn (y:int):int => (f y PLUS 2)
+  in
+    (b 12)
+  end
+end

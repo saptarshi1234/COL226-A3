@@ -1,0 +1,25 @@
+fun mod (x:int): int->int =>
+  fn (y:int):int => if x LESSTHAN y then x else ((mod (x MINUS y)) y) fi;
+
+fun noFactorsAboveOf (x:int):int->bool => fn (i:int):bool => 
+  if (i TIMES 2) GREATERTHAN x then TRUE 
+  else NOT ( ((mod x) i) EQUALS 0 ) AND ((noFactorsAboveOf x) i PLUS 1) 
+  fi;
+
+fun prime (x:int): bool => ((noFactorsAboveOf x) 2);
+
+fun getKthPrime (k:int):int->int->int => fn (n:int):int->int => fn (i:int):int => 
+  if i EQUALS k then n MINUS 1 else
+    let ii = if (prime n) then i PLUS 1 else i fi 
+    in (((getKthPrime k) n PLUS 1) ii) 
+    end
+  fi;
+
+fun kthPrime (k:int):int => (((getKthPrime k) 2) 0);
+
+(kthPrime 1);
+(kthPrime 2);
+(kthPrime 3);
+(kthPrime 4)
+
+

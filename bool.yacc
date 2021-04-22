@@ -35,7 +35,7 @@ val space  = " "
 %right IMPLIES
 %left  AND OR XOR 
 %left  EQUALS 
-%nonassoc LESSTHAN GREATERTHAN 
+%left  LESSTHAN GREATERTHAN (* TODO *)
 %left  PLUS MINUS
 %left  TIMES
 %right NOT NEGATE
@@ -74,7 +74,8 @@ formula     :   IF formula THEN formula ELSE formula FI (AST.CondExp(formula1, f
 
             |   formula GREATERTHAN formula (AST.BinExp(AST.GreaterThan, formula1, formula2))
             |   formula LESSTHAN formula (AST.BinExp(AST.LessThan, formula1, formula2))
-            
+
+			|	NEGATE formula (AST.UnaryExp(AST.Negate, formula))            
             |   NOT formula (AST.UnaryExp(AST.Not, formula))
             |   ID (AST.VarExp(ID))
             |   BOOLCONST (AST.BoolExp(BOOLCONST))

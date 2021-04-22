@@ -1,0 +1,3 @@
+let fact1 = fn (f:  -> (int->int) ):int->int => fn (n1:int):int => if n1 EQUALS 0 then 1 else n1 TIMES ((f f) n1 MINUS 1) fi
+in ((fact1 fact1) 4)
+end

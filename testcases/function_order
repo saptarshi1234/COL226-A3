@@ -1,0 +1,6 @@
+fun g (x:int):int => 12;
+fun f (x:int):int => (g 1);
+fun g (x:int):int => 13;
+
+(f 2);
+(g 2)

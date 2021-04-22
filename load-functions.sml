@@ -38,8 +38,9 @@ fun evaluateListInternal ([], env, env_types, index) = []
     let 
       open AST
       val _ = print ("Expression " ^ (Int.toString index) ^ " ::\n\t" ^ expToString(a) ^ "\n")
-      val _ = print ("AST /> \t" ^ (expToTree a) ^ "\n")
-      val curr_type = EVALUATOR.computeTypes(a, env_types)
+      val _ = print ("AST /> \n\t" ^ (expToTree a) ^ "\n")
+      val curr_type = EVALUATOR.computeTypes(a, env_types) 
+      (*val curr_type = Int*)
       val _ = print "type checking passed\n"
       val ans = EVALUATOR.evaluate(a, env)
       val _ = print ("Value : " ^ (valToString ans) ^ "\n" )

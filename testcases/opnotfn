@@ -1,2 +1,2 @@
-fun f (x:int):int => x PLUS 1;
-fun g (y:int):int => ((f 2 ) y)
+fun f (x:int):int => x PLUS 1
+;fun g (y:int):int => ((f 2 ) y)
