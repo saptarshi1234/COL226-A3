@@ -20,6 +20,8 @@ struct
       val val1 = evaluate(exp1, env)
       val val2 = evaluate(exp2, env)
     in
+    ( 
+      (* print (Int.toString(length env) ^ " "); *)
       case (oper, val1, val2) of 
         (Plus, NumVal(v1), NumVal(v2))          => NumVal (v1 + v2)
       | (Minus, NumVal(v1), NumVal(v2))         => NumVal (v1 - v2)
@@ -33,6 +35,7 @@ struct
       | (Equals, BoolVal(v1), BoolVal(v2))      => BoolVal(v1 = v2)
       | (Implies, BoolVal(v1), BoolVal(v2))     => BoolVal(implies v1 v2)
       | _                                       => raise Fail("\n\t" ^ "broken1 types " ^ (expToString exp1) ^ " " ^ (expToString exp2)) 
+    )
     end
 
   and evalUnaryExp ((oper, exp), env) = 
@@ -58,12 +61,13 @@ struct
   and applylambda(lval, arg_exp, env) = let
     val arg = evaluate (arg_exp, env)
     val p = case lval of 
-      FunVal(_, id, arg_typ, return_typ, function_body, env_internal) => 
-        (id, arg_typ, return_typ, function_body, env_internal) 
+      FunVal(name, id, arg_typ, return_typ, function_body, env_internal) => 
+        (name, id, arg_typ, return_typ, function_body, env_internal) 
       | _ => raise Fail("Broken4 Types")
-    val (id, arg_typ, return_typ, function_body, env_internal) = p
+    val (name, id, arg_typ, return_typ, function_body, env_internal) = p
     val env_internal = envAdd(id, arg, env_internal)
-    val ans = evaluate(function_body, env_internal @ env) 
+    val env_internal = if name <> "" then envAdd(name, lval, env_internal) else env_internal
+    val ans = evaluate(function_body, env_internal) 
 
     val expected_params_type = (getType arg)
     val expected_return_type = (getType ans)
@@ -79,7 +83,8 @@ struct
 
 
   and evaluate (ast: AST.exp, env:environment): value =
-(*     (print (Int.toString(length env) ^ " ");  *)
+    (
+      (* print ( expToTree(ast) ^ " " ^ Int.toString(length env) ^ "\n");  *)
     case ast of
       NumExp(num)                                             =>  NumVal(num)
     | BoolExp(b)                                              =>  BoolVal(b)
@@ -92,7 +97,7 @@ struct
     | FunctionExp(VarExp(name), VarExp(arg), typ1, typ2, exp) =>  FunVal(name, arg, typ1, typ2, exp, env)
     | LambdaExp(VarExp(id), typ1, typ2, exp)                  =>  FunVal("", id, typ1, typ2, exp, env)
     | _                                                       =>  raise Fail("\n\t" ^ "broken5 types")
-(*   ) *)
+  )
   fun opErr(oper, expected_type, act_type, exp) = raise Fail("\n\t" ^ "OperatorOperandMismatch -> " ^ oper ^ " expected: " ^ expected_type ^ ", received: " ^ act_type ^ " in expr: " ^ (expToString exp) ) 
   
   fun compose (t1: typ, t2:typ) = "(" ^ typeToString(t1) ^ "*" ^ typeToString(t2) ^ ")" 

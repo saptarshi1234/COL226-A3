@@ -32,18 +32,23 @@ fun parse (lexer) =
     end
 	handle ParseError => (print(!err_str); OS.Process.exit(OS.Process.failure) [""])
 
+val verbose = ref true
 
 fun evaluateListInternal ([], env, env_types, index) = []
 |   evaluateListInternal ((a::x), env, env_types, index) = 
     let 
       open AST
-      val _ = print ("Expression " ^ (Int.toString index) ^ " ::\n\t" ^ expToString(a) ^ "\n")
-      val _ = print ("AST /> \n\t" ^ (expToTree a) ^ "\n")
+      val _ = if !verbose then (
+        print ("Expression " ^ (Int.toString index) ^ " ::\n");
+        print ("Text \t: " ^ expToString(a) ^ "\n");
+        print ("AST \t: " ^ (expToTree a) ^ "\n")
+      ) else ()
+
       val curr_type = EVALUATOR.computeTypes(a, env_types) 
       (*val curr_type = Int*)
-      val _ = print "type checking passed\n"
+      (* val _ = print "type checking passed\n" *)
       val ans = EVALUATOR.evaluate(a, env)
-      val _ = print ("Value : " ^ (valToString ans) ^ "\n" )
+      val _ = print ("Value\t: " ^ (valToString ans) ^ "\n" )
       val (env, env_types) = case ans of 
          FunVal("", arg, typ1, typ2, exp, params)   => (env, env_types)
       |  FunVal(name, arg, typ1, typ2, exp, params) => (envAdd(name, ans, env), envAdd(name, curr_type, env_types))
@@ -52,7 +57,10 @@ fun evaluateListInternal ([], env, env_types, index) = []
       val _ = print("\n")
 
     in
-        ans :: (evaluateListInternal (x, env, env_types, index + 1)) 
+        (   
+            (* print (Int.toString(length env) ^ " "); *)
+            ans :: (evaluateListInternal (x, env, env_types, index + 1))
+        )
     end
 
 fun evaluateList x = evaluateListInternal (x,[], [], 1)
@@ -76,5 +84,8 @@ in
     TextIO.closeOut outStream)
 end
 
+
 val evalFromFile = evaluateString o readString
 val parseFromFile = parseString o readString
+
+fun evaluateFromFile (s, v) = (verbose := v; evalFromFile s) 

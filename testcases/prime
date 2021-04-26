@@ -17,9 +17,7 @@ fun getKthPrime (k:int):int->int->int => fn (n:int):int->int => fn (i:int):int =
 
 fun kthPrime (k:int):int => (((getKthPrime k) 2) 0);
 
-(kthPrime 1);
-(kthPrime 2);
-(kthPrime 3);
-(kthPrime 4)
+(kthPrime 500)
+
 
 
