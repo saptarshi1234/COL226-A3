@@ -1,2 +1,4 @@
 fun fact (n:int):int => if n EQUALS 0 then 1 else n TIMES (fact (n MINUS 1)) fi;
-(fact 10)
+(fact 12);
+NEGATE 23 PLUS 1;
+NOT (2 GREATERTHAN 23 )AND 3 EQUALS 12

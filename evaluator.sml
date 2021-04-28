@@ -1,4 +1,5 @@
 
+val fileName = ref ""
 structure EVALUATOR = 
 struct 
   (* exception ReturnTypeMismatch of string
@@ -23,17 +24,17 @@ struct
     ( 
       (* print (Int.toString(length env) ^ " "); *)
       case (oper, val1, val2) of 
-        (Plus, NumVal(v1), NumVal(v2))          => NumVal (v1 + v2)
-      | (Minus, NumVal(v1), NumVal(v2))         => NumVal (v1 - v2)
-      | (Times, NumVal(v1), NumVal(v2))         => NumVal (v1 * v2)
-      | (GreaterThan, NumVal(v1), NumVal(v2))   => BoolVal(v1 > v2)
-      | (LessThan, NumVal(v1), NumVal(v2))      => BoolVal(v1 < v2)
-      | (And, BoolVal(v1), BoolVal(v2))         => BoolVal(v1 andalso v2)
-      | (Or, BoolVal(v1), BoolVal(v2))          => BoolVal(v1 orelse v2)
-      | (Xor, BoolVal(v1), BoolVal(v2))         => BoolVal(xor v1 v2)
-      | (Equals, NumVal(v1), NumVal(v2))        => BoolVal(v1 = v2)
-      | (Equals, BoolVal(v1), BoolVal(v2))      => BoolVal(v1 = v2)
-      | (Implies, BoolVal(v1), BoolVal(v2))     => BoolVal(implies v1 v2)
+        (Plus(_), NumVal(v1), NumVal(v2))          => NumVal (v1 + v2)
+      | (Minus(_), NumVal(v1), NumVal(v2))         => NumVal (v1 - v2)
+      | (Times(_), NumVal(v1), NumVal(v2))         => NumVal (v1 * v2)
+      | (GreaterThan(_), NumVal(v1), NumVal(v2))   => BoolVal(v1 > v2)
+      | (LessThan(_), NumVal(v1), NumVal(v2))      => BoolVal(v1 < v2)
+      | (And(_), BoolVal(v1), BoolVal(v2))         => BoolVal(v1 andalso v2)
+      | (Or(_), BoolVal(v1), BoolVal(v2))          => BoolVal(v1 orelse v2)
+      | (Xor(_), BoolVal(v1), BoolVal(v2))         => BoolVal(xor v1 v2)
+      | (Equals(_), NumVal(v1), NumVal(v2))        => BoolVal(v1 = v2)
+      | (Equals(_), BoolVal(v1), BoolVal(v2))      => BoolVal(v1 = v2)
+      | (Implies(_), BoolVal(v1), BoolVal(v2))     => BoolVal(implies v1 v2)
       | _                                       => raise Fail("\n\t" ^ "broken1 types " ^ (expToString exp1) ^ " " ^ (expToString exp2)) 
     )
     end
@@ -43,8 +44,8 @@ struct
       val val1 = evaluate(exp, env)
     in
       case (oper, val1) of 
-        (Not, BoolVal(b))   =>  BoolVal(not b)
-      | (Negate, NumVal(n)) =>  NumVal(~n)
+        (Not(_), BoolVal(b))   =>  BoolVal(not b)
+      | (Negate(_), NumVal(n)) =>  NumVal(~n)
       | _                   => raise Fail("\n\t" ^ "broken2 types")
     end
 
@@ -86,52 +87,58 @@ struct
     (
       (* print ( expToTree(ast) ^ " " ^ Int.toString(length env) ^ "\n");  *)
     case ast of
-      NumExp(num)                                             =>  NumVal(num)
-    | BoolExp(b)                                              =>  BoolVal(b)
-    | VarExp(id)                                              =>  envLookup(id, env)
-    | LetExp(VarExp(var_id), var_val, exp)                    =>  evaluate(exp, envAdd(var_id, evaluate(var_val, env), env))
+      NumExp(_,num)                                           =>  NumVal(num)
+    | BoolExp(_,b)                                            =>  BoolVal(b)
+    | VarExp(loc,id)                                          =>  envLookup((loc, id), env)
+    | LetExp(VarExp(_,var_id), var_val, exp)                  =>  evaluate(exp, envAdd(var_id, evaluate(var_val, env), env))
     | BinExp(oper, exp1, exp2)                                =>  evalBinExp((oper, exp1, exp2), env)
     | UnaryExp(unop, exp)                                     =>  evalUnaryExp((unop, exp), env)
     | CondExp(exp1, exp2, exp3)                               =>  evaluateCondExp((exp1, exp2, exp3), env)
     | AppExp(fexp, exp)                                       =>  applylambda(evaluate(fexp, env), exp, env)   (* evn or e ?? *)  
-    | FunctionExp(VarExp(name), VarExp(arg), typ1, typ2, exp) =>  FunVal(name, arg, typ1, typ2, exp, env)
-    | LambdaExp(VarExp(id), typ1, typ2, exp)                  =>  FunVal("", id, typ1, typ2, exp, env)
+    | FunctionExp(VarExp(_,name), VarExp(_,arg), typ1, typ2, exp) =>  FunVal(name, arg, typ1, typ2, exp, env)
+    | LambdaExp(VarExp(_,id), typ1, typ2, exp)                  =>  FunVal("", id, typ1, typ2, exp, env)
     | _                                                       =>  raise Fail("\n\t" ^ "broken5 types")
   )
-  fun opErr(oper, expected_type, act_type, exp) = raise Fail("\n\t" ^ "OperatorOperandMismatch -> " ^ oper ^ " expected: " ^ expected_type ^ ", received: " ^ act_type ^ " in expr: " ^ (expToString exp) ) 
-  
-  fun compose (t1: typ, t2:typ) = "(" ^ typeToString(t1) ^ "*" ^ typeToString(t2) ^ ")" 
+  fun getLocStr exp = let 
+    val its = Int.toString
+    val ((l1,c1), (l2,c2)) = getLineColRange(exp) 
+  in 
+    (its l1) ^ "." ^ (its c1) ^ "-" ^ (its l2) ^ "." ^ (its c2)
+  end
+
+  fun opErr(oper, expected_type, act_type, exp) = raise Fail("\n" ^ !fileName ^ ":" ^ getLocStr(exp) ^ " Error: operator and operand do not agree \n\t operator domain\t: " ^ expected_type ^ "\n\t operand\t\t\t: " ^ act_type ^ "\n\t in expression:\n\t\t" ^ (expToString exp) ) 
+  fun opNfn(expected_type, oper, exp)       = raise Fail("\n" ^ !fileName ^ ":"  ^ getLocStr(exp) ^ " Error: operator is not a function \n\t operator\t: [" ^ (expToString oper) ^ "] " ^ typeToString expected_type ^ "\n\t in expression :\n\t\t" ^ (expToString exp) ) 
+  fun fnErr(constraint, etype, exp)             = raise Fail("\n" ^ !fileName ^ ":"  ^ getLocStr(exp) ^ " Error: expression does not match return type constraint \n\t expression \t: " ^ (typeToString etype)^ "\n\t return type\t: " ^ (typeToString constraint) ^ "\n\t in expression:\n\t\t" ^ (expToString exp) )
+
+  fun compose (t1: typ, t2:typ) = "(" ^ typeToString(t1) ^ " * " ^ typeToString(t2) ^ ")" 
 
   fun computeTypes (ast : AST.exp, env:type_env) = 
         case ast of 
-      NumExp(num)                                             =>  Int
-    | BoolExp(b)                                              =>  Bool
-    | VarExp(id)                                              =>  envLookup (id, env)
-    | LetExp(VarExp(var_id), var_val, exp)                    =>  computeTypes (exp, envAdd(var_id, computeTypes(var_val, env), env) )
-    | BinExp(oper, exp1, exp2)                                =>  
+      NumExp(_,num)                                             =>  Int
+    | BoolExp(_,b)                                              =>  Bool
+    | VarExp(loc,id)                                            =>  envLookup ((loc, id), env)
+    | LetExp(VarExp(_,var_id), var_val, exp)                    =>  computeTypes (exp, envAdd(var_id, computeTypes(var_val, env), env) )
+    | BinExp(oper, exp1, exp2)                                  =>  
         let 
           val t1 = computeTypes (exp1, env)
           val t2 = computeTypes (exp2, env)
         in case oper of 
-          Plus          => if t1 = Int andalso t2 = Int then Int else raise opErr(binopToString oper,compose(Int, Int), compose(t1,t2), ast)
-        | Minus         => if t1 = Int andalso t2 = Int then Int else raise opErr(binopToString oper,compose(Int, Int), compose(t1,t2), ast)
-        | Times         => if t1 = Int andalso t2 = Int then Int else raise opErr(binopToString oper,compose(Int, Int), compose(t1,t2), ast)
-
-        | GreaterThan   => if t1 = Int andalso t2 = Int then Bool else raise opErr(binopToString oper,compose(Int, Int), compose(t1,t2), ast)
-        | LessThan      => if t1 = Int andalso t2 = Int then Bool else raise opErr(binopToString oper,compose(Int, Int), compose(t1,t2), ast)
-
-        | And           => if t1 = Bool andalso t2 = Bool then Bool else raise opErr(binopToString oper,compose(Bool, Bool), compose(t1,t2), ast)
-        | Or            => if t1 = Bool andalso t2 = Bool then Bool else raise opErr(binopToString oper,compose(Bool, Bool), compose(t1,t2), ast)
-        | Xor           => if t1 = Bool andalso t2 = Bool then Bool else raise opErr(binopToString oper,compose(Bool, Bool), compose(t1,t2), ast)
-        | Implies       => if t1 = Bool andalso t2 = Bool then Bool else raise opErr(binopToString oper,compose(Bool, Bool), compose(t1,t2), ast)
-
-        | Equals        => if (t1 = Bool andalso t2 = Bool) orelse (t1 = Int andalso t2 = Int) then Bool else raise Fail("\n\t" ^ "OperatorOperandMismatch -> " ^ "Equals expected: " ^ compose(Int, Int) ^ " or " ^ compose(Bool, Bool) ^ ", received: " ^ compose(t1,t2) ^ " in expr: " ^ expToString(ast) )
+          Plus(_)          => if t1 = Int andalso t2 = Int then Int else raise opErr(binopToString oper,compose(Int, Int), compose(t1,t2), ast)
+        | Minus(_)         => if t1 = Int andalso t2 = Int then Int else raise opErr(binopToString oper,compose(Int, Int), compose(t1,t2), ast)
+        | Times(_)         => if t1 = Int andalso t2 = Int then Int else raise opErr(binopToString oper,compose(Int, Int), compose(t1,t2), ast)
+        | GreaterThan(_)   => if t1 = Int andalso t2 = Int then Bool else raise opErr(binopToString oper,compose(Int, Int), compose(t1,t2), ast)
+        | LessThan(_)      => if t1 = Int andalso t2 = Int then Bool else raise opErr(binopToString oper,compose(Int, Int), compose(t1,t2), ast)
+        | And(_)           => if t1 = Bool andalso t2 = Bool then Bool else raise opErr(binopToString oper,compose(Bool, Bool), compose(t1,t2), ast)
+        | Or(_)            => if t1 = Bool andalso t2 = Bool then Bool else raise opErr(binopToString oper,compose(Bool, Bool), compose(t1,t2), ast)
+        | Xor(_)           => if t1 = Bool andalso t2 = Bool then Bool else raise opErr(binopToString oper,compose(Bool, Bool), compose(t1,t2), ast)
+        | Implies(_)       => if t1 = Bool andalso t2 = Bool then Bool else raise opErr(binopToString oper,compose(Bool, Bool), compose(t1,t2), ast)
+        | Equals(_)        => if (t1 = Bool andalso t2 = Bool) orelse (t1 = Int andalso t2 = Int) then Bool else opErr(binopToString oper, compose (Int,Int) ^ " or " ^ compose(Bool,Bool), compose(t1,t2), ast)
         end
     | UnaryExp(oper, exp)                                     =>
         let val t = computeTypes (exp, env)
         in case oper of 
-          Not     => if t = Bool then Bool else raise opErr(unopToString oper, typeToString Bool, typeToString t, exp)
-        | Negate  => if t = Int then Int else raise opErr(unopToString oper, typeToString Int, typeToString t, exp)
+          Not(_)     => if t = Bool then Bool else raise opErr(unopToString oper, typeToString Bool, typeToString t, exp)
+        | Negate(_)  => if t = Int then Int else raise opErr(unopToString oper, typeToString Int, typeToString t, exp)
         end
 
 
@@ -140,9 +147,11 @@ struct
           val t1 = computeTypes (exp1, env)
           val t2 = computeTypes (exp2, env)
           val t3 = computeTypes (exp3, env)
+
+          val loc_str = getLocStr ast
         in
-          if t1 <> Bool then raise opErr("IF ", typeToString Bool, typeToString t1, exp1)
-          else if t2 <> t3 then raise Fail("\n\t" ^ "OperatorOperandMismatch -> " ^ "THEN ... ELSE ... have different types: " ^ typeToString(t2) ^" and " ^ typeToString(t3))
+          if t1 <> Bool then raise Fail("\n" ^ !fileName ^ ":"  ^ loc_str ^ " Error: conditional expression in IF is not a boolean expression \n\t conditional expression\t: [" ^ (expToString exp1) ^ "] - " ^ typeToString(t1) ^ "\n\t in expression:\n\t\t" ^ (expToString ast) ) 
+          else if t2 <> t3 then raise Fail("\n" ^ !fileName ^ ":"  ^ loc_str ^ " Error: types of IF branches do not agree \n\t then branch\t: " ^ typeToString(t2) ^ "\n\t else branch\t: " ^ typeToString(t3) ^ "\n\t in expession: \n\t\t" ^ (expToString ast))
           else t2
         end
 
@@ -154,23 +163,24 @@ struct
           val actualParamsType = computeTypes (exp, env) 
         in 
           case funType of 
-            Arrow(formalParamsType, returnType) => if formalParamsType = actualParamsType then returnType else raise Fail("\n\t" ^ "ArgumentTypeMismatch -> " ^ "Formal: " ^ typeToString(formalParamsType) ^ " actual: " ^ typeToString(actualParamsType) ^ " in exp: " ^ expToString(ast))
-          | _                                   => raise Fail("\n\t" ^ "OperatorNotFunction -> " ^ expToString(fexp) ^ " has type: " ^ typeToString(funType) ^ " in expression " ^ expToString(ast)) 
+            Arrow(formalParamsType, returnType) => if formalParamsType = actualParamsType then returnType else opErr("", typeToString(formalParamsType) , typeToString(actualParamsType),ast)
+          | _                                   => opNfn(funType, fexp, ast) 
         end
 
-    | FunctionExp(VarExp(name), VarExp(arg), typ1, typ2, exp) =>  
+    | FunctionExp(VarExp(_,name), VarExp(_,arg), typ1, typ2, exp) =>  
         let 
           val bodyType = computeTypes (exp, envAdd( name, Arrow(typ1, typ2), envAdd(arg, typ1, env)) )
         in 
           if bodyType = typ2 then Arrow(typ1, typ2) 
-          else raise Fail("\n\t" ^ "ReturnTypeMismatch -> " ^ "expected:" ^ typeToString(typ2) ^ " got: " ^ typeToString(bodyType) ^ " in function " ^ name ^ " : " ^ expToString(ast) )
+          else fnErr(typ2, bodyType, ast)
         end 
-    | LambdaExp(VarExp(arg), typ1, typ2, exp)                  =>  
+
+    | LambdaExp(VarExp(_,arg), typ1, typ2, exp)                  =>  
         let 
           val bodyType = computeTypes (exp, envAdd(arg, typ1, env)) 
         in 
           if bodyType = typ2 then Arrow(typ1, typ2) 
-          else raise Fail("\n\t" ^ "ReturnTypeMismatch -> " ^ "expected:" ^ typeToString(typ2) ^ " got " ^ typeToString(bodyType) ^ " in lambda function : " ^ expToString(ast))
+          else fnErr(typ2, bodyType, ast)
         end 
     | _                                                       =>  raise Fail("\n\t" ^ "F")
 end

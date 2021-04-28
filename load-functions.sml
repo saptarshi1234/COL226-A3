@@ -88,4 +88,4 @@ end
 val evalFromFile = evaluateString o readString
 val parseFromFile = parseString o readString
 
-fun evaluateFromFile (s, v) = (verbose := v; evalFromFile s) 
+fun evaluateFromFile (s, v) = (verbose := v; fileName:=s; evalFromFile s) 

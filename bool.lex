@@ -18,6 +18,7 @@ fun concat_list parsedString = "[" ^ partially_concat_list parsedString ^ "]\n"
 
 val pos = ref 1
 val col = ref 1
+val nextcol = ref 1
 
 fun reset () = (
     err := false
@@ -35,7 +36,10 @@ val quote = "\""
 
 fun stringify (name, text) = name ^ space ^ quote ^ text ^ quote
 
-fun update text = col := (!col) + size(text)
+fun update text = (
+    col := !nextcol;
+    nextcol := (!col) + size(text)
+)
 
 
 %%
@@ -49,55 +53,51 @@ newline = [\n \r\n];
 
 %%
 
-{newline}       =>  (pos := (!pos) + 1; col := 1; lex());
-{space}+        =>  (col := (!col) + size(yytext);lex());
+{newline}       =>  (pos := (!pos) + 1; col := 1; nextcol := 1; lex());
+{space}+        =>  (update yytext;lex());
 
 
-"TRUE"          =>  (update(yytext); Tokens.BOOLCONST(true, !pos, !col - size yytext ));  
-"FALSE"         =>  (update(yytext); Tokens.BOOLCONST(false, !pos, !col - size yytext ));  
+"TRUE"          =>  (update(yytext); Tokens.BOOLCONST( ((!pos, (!col, !nextcol)), true), !pos , !col));  
+"FALSE"         =>  (update(yytext); Tokens.BOOLCONST( ((!pos, (!col, !nextcol)), false), !pos , !col));  
 
-"NOT"           =>  (update(yytext); Tokens.NOT(!pos, !col - size yytext ));  
-"AND"           =>  (update(yytext); Tokens.AND(!pos, !col - size yytext ));  
-"OR"            =>  (update(yytext); Tokens.OR(!pos, !col - size yytext ));  
-"XOR"           =>  (update(yytext); Tokens.XOR(!pos, !col - size yytext ));  
-"IMPLIES"       =>  (update(yytext); Tokens.IMPLIES(!pos, !col - size yytext ));  
+"NOT"           =>  (update(yytext); Tokens.NOT((!pos, (!col, !nextcol)), !pos, !col));  
+"AND"           =>  (update(yytext); Tokens.AND((!pos, (!col, !nextcol)), !pos, !col));  
+"OR"            =>  (update(yytext); Tokens.OR((!pos, (!col, !nextcol)), !pos, !col));  
+"XOR"           =>  (update(yytext); Tokens.XOR((!pos, (!col, !nextcol)), !pos, !col));  
+"IMPLIES"       =>  (update(yytext); Tokens.IMPLIES((!pos, (!col, !nextcol)), !pos, !col));  
+"EQUALS"        =>  (update(yytext); Tokens.EQUALS((!pos, (!col, !nextcol)), !pos, !col));  
 
-"EQUALS"        =>  (update(yytext); Tokens.EQUALS(!pos, !col - size yytext ));  
+"PLUS"          =>  (update(yytext); Tokens.PLUS((!pos, (!col, !nextcol)), !pos, !col));
+"MINUS"         =>  (update(yytext); Tokens.MINUS((!pos, (!col, !nextcol)), !pos, !col));
+"TIMES"         =>  (update(yytext); Tokens.TIMES((!pos, (!col, !nextcol)), !pos, !col));
+"NEGATE"        =>  (update(yytext); Tokens.NEGATE((!pos, (!col, !nextcol)), !pos, !col)); 
+"LESSTHAN"      =>  (update(yytext); Tokens.LESSTHAN((!pos, (!col, !nextcol)), !pos, !col));  
+"GREATERTHAN"   =>  (update(yytext); Tokens.GREATERTHAN((!pos, (!col, !nextcol)), !pos, !col));
 
-"PLUS"          =>  (update(yytext); Tokens.PLUS(!pos, !col - size yytext ));
-"MINUS"         =>  (update(yytext); Tokens.MINUS(!pos, !col - size yytext ));
-"TIMES"         =>  (update(yytext); Tokens.TIMES(!pos, !col - size yytext ));
-"NEGATE"        =>  (update(yytext); Tokens.NEGATE(!pos, !col - size yytext )); 
+"="             =>  (update(yytext); Tokens.ASSIGN((!pos, (!col, !nextcol)), !pos, !col));  
+"let"           =>  (update(yytext); Tokens.LET((!pos, (!col, !nextcol)), !pos, !col));  
+"in"            =>  (update(yytext); Tokens.IN((!pos, (!col, !nextcol)), !pos, !col));  
+"end"           =>  (update(yytext); Tokens.END((!pos, (!col, !nextcol)), !pos, !col));  
 
-"LESSTHAN"      =>  (update(yytext); Tokens.LESSTHAN(!pos, !col - size yytext ));  
-"GREATERTHAN"   =>  (update(yytext); Tokens.GREATERTHAN(!pos, !col - size yytext ));  
+"if"            =>  (update(yytext); Tokens.IF((!pos, (!col, !nextcol)), !pos, !col));  
+"then"          =>  (update(yytext); Tokens.THEN((!pos, (!col, !nextcol)), !pos, !col));  
+"else"          =>  (update(yytext); Tokens.ELSE((!pos, (!col, !nextcol)), !pos, !col));  
+"fi"            =>  (update(yytext); Tokens.FI((!pos, (!col, !nextcol)), !pos, !col));  
 
-"="             =>  (update(yytext); Tokens.ASSIGN(!pos, !col - size yytext ));  
-"let"           =>  (update(yytext); Tokens.LET(!pos, !col - size yytext ));  
-"in"            =>  (update(yytext); Tokens.IN(!pos, !col - size yytext ));  
-"end"           =>  (update(yytext); Tokens.END(!pos, !col - size yytext ));  
+"("             =>  (update(yytext); Tokens.LPAREN((!pos, (!col, !nextcol)), !pos, !col));  
+")"             =>  (update(yytext); Tokens.RPAREN((!pos, (!col, !nextcol)), !pos, !col));  
+";"             =>  (update(yytext); Tokens.TERM((!pos, (!col, !nextcol)), !pos, !col)); 
 
+"int"           =>  (update(yytext); Tokens.INT((!pos, (!col, !nextcol)), !pos, !col));  
+"bool"          =>  (update(yytext); Tokens.BOOL((!pos, (!col, !nextcol)), !pos, !col));  
 
-"if"            =>  (update(yytext); Tokens.IF(!pos, !col - size yytext ));  
-"then"          =>  (update(yytext); Tokens.THEN(!pos, !col - size yytext ));  
-"else"          =>  (update(yytext); Tokens.ELSE(!pos, !col - size yytext ));  
-"fi"            =>  (update(yytext); Tokens.FI(!pos, !col - size yytext ));  
+"->"            =>  (update(yytext); Tokens.ARROWTYP((!pos, (!col, !nextcol)), !pos, !col));  
+"=>"            =>  (update(yytext); Tokens.ARROWDEF((!pos, (!col, !nextcol)), !pos, !col));  
+":"             =>  (update(yytext); Tokens.COLON((!pos, (!col, !nextcol)), !pos, !col));  
+"fn"            =>  (update(yytext); Tokens.FN((!pos, (!col, !nextcol)), !pos, !col));  
+"fun"           =>  (update(yytext); Tokens.FUN((!pos, (!col, !nextcol)), !pos, !col));  
 
-"("             =>  (update(yytext); Tokens.LPAREN(!pos, !col - size yytext ));  
-")"             =>  (update(yytext); Tokens.RPAREN(!pos, !col - size yytext ));  
-";"             =>  (update(yytext); Tokens.TERM(!pos, !col - size yytext ));  
-
-"int"           =>  (update(yytext); Tokens.INT(!pos, !col - size yytext ));  
-"bool"          =>  (update(yytext); Tokens.BOOL(!pos, !col - size yytext ));  
-"->"            =>  (update(yytext); Tokens.ARROWTYP(!pos, !col - size yytext ));  
-"=>"            =>  (update(yytext); Tokens.ARROWDEF(!pos, !col - size yytext ));  
-":"             =>  (update(yytext); Tokens.COLON(!pos, !col - size yytext ));  
-
-"fn"          =>  (update(yytext); Tokens.FN(!pos, !col - size yytext ));  
-"fun"          =>  (update(yytext); Tokens.FUN(!pos, !col - size yytext ));  
-
-
-{alpha}{alphadigit}*     =>  (update(yytext); Tokens.ID(yytext, !pos, !col - size yytext));
-{digit}+        =>  (update(yytext); Tokens.INTCONST((case (Int.fromString yytext) of SOME(x) => x | NONE =>0), !pos, !col - size yytext ));
+{alpha}{alphadigit}*     =>  (update(yytext); Tokens.ID( ((!pos, (!col, !nextcol)), yytext), !pos, !col));
+{digit}+        =>  (update(yytext); Tokens.INTCONST((case (Int.fromString yytext) of SOME(x) => ((!pos, (!col, !nextcol)), x) | NONE =>raise Fail("")), !pos, !col));
 
 .               =>  (error(!pos, !col, yytext); col := (!col) + size(yytext); err := true ;lex());

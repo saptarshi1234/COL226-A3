@@ -1,0 +1,8 @@
+let y = 12 
+in
+  if fn (x:int):int => 2 then
+    y
+  else
+    3 MINUS 2
+  fi
+end
