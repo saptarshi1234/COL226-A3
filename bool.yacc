@@ -1,18 +1,18 @@
 val space  = " "
-type loc = int * (int * int)
+type loc = (int * int) * (int * int)
 %%
 %name Bool
 
 %term  
-  NOT of int * (int * int) | AND of int * (int * int) | OR of int * (int * int) | XOR of int * (int * int) | EQUALS of int * (int * int) | IMPLIES of int * (int * int) 
-| IF of int * (int * int) | THEN of int * (int * int) | ELSE of int * (int * int)| FI of int * (int * int) 
-| PLUS of int * (int * int)| MINUS of int * (int * int)| TIMES of int * (int * int)| NEGATE of int * (int * int)
-| LESSTHAN of int * (int * int)| GREATERTHAN of int * (int * int)
-| LPAREN of int * (int * int) | RPAREN of int * (int * int) 
-| ID of (int * (int * int))*string | INTCONST of (int * (int * int))*int | BOOLCONST of (int * (int * int))*bool 
-| LET of int * (int * int)| IN of int * (int * int)| END of int * (int * int)| ASSIGN of int * (int * int)
-| FN of int * (int * int)| FUN of int * (int * int)| INT of int * (int * int)| BOOL of int * (int * int)| ARROWTYP of int * (int * int)| ARROWDEF of int * (int * int)| COLON of int * (int * int)
-| TERM of int * (int * int) 
+  NOT of (int * int) * (int * int) | AND of (int * int) * (int * int) | OR of (int * int) * (int * int) | XOR of (int * int) * (int * int) | EQUALS of (int * int) * (int * int) | IMPLIES of (int * int) * (int * int) 
+| IF of (int * int) * (int * int) | THEN of (int * int) * (int * int) | ELSE of (int * int) * (int * int)| FI of (int * int) * (int * int) 
+| PLUS of (int * int) * (int * int)| MINUS of (int * int) * (int * int)| TIMES of (int * int) * (int * int)| NEGATE of (int * int) * (int * int)
+| LESSTHAN of (int * int) * (int * int)| GREATERTHAN of (int * int) * (int * int)
+| LPAREN of (int * int) * (int * int) | RPAREN of (int * int) * (int * int) 
+| ID of ((int * int) * (int * int))*string | INTCONST of ((int * int) * (int * int))*int | BOOLCONST of ((int * int) * (int * int))*bool 
+| LET of (int * int) * (int * int)| IN of (int * int) * (int * int)| END of (int * int) * (int * int)| ASSIGN of (int * int) * (int * int)
+| FN of (int * int) * (int * int)| FUN of (int * int) * (int * int)| INT of (int * int) * (int * int)| BOOL of (int * int) * (int * int)| ARROWTYP of (int * int) * (int * int)| ARROWDEF of (int * int) * (int * int)| COLON of (int * int) * (int * int)
+| TERM of (int * int) * (int * int) 
 | EOF
 
 %nonterm  
@@ -52,15 +52,15 @@ type loc = int * (int * int)
 start       :   program (program)
 program     :   expression TERM program (expression :: program) | expression ([expression])
 expression  :   formula (formula) 
-            |   FUN ID LPAREN ID COLON typ RPAREN COLON typ ARROWDEF formula (AST.FunctionExp((AST.VarExp ID1), (AST.VarExp ID2), typ1, typ2, formula))
+            |   FUN ID LPAREN ID COLON typ RPAREN COLON typ ARROWDEF formula (AST.FunctionExp( (AST.VarExp ID1), (AST.VarExp ID2), typ1, typ2, formula, (#1 FUN) ))
 
 typ         :   INT (AST.Int) | BOOL (AST.Bool) | typ ARROWTYP typ (AST.Arrow(typ1, typ2)) | LPAREN typ RPAREN (typ)
-lambda      :   FN LPAREN ID COLON typ RPAREN COLON typ ARROWDEF formula (AST.LambdaExp((AST.VarExp ID), typ1, typ2, formula))
+lambda      :   FN LPAREN ID COLON typ RPAREN COLON typ ARROWDEF formula (AST.LambdaExp((AST.VarExp ID), typ1, typ2, formula, (#1 FN)))
 
-formula     :   IF formula THEN formula ELSE formula FI (AST.CondExp(formula1, formula2, formula3))
-            |   LET ID ASSIGN formula IN formula END (AST.LetExp( (AST.VarExp ID), formula1, formula2))
+formula     :   IF formula THEN formula ELSE formula FI (AST.CondExp(formula1, formula2, formula3, (#1 IF, #2 FI) ))
+            |   LET ID ASSIGN formula IN formula END (AST.LetExp( (AST.VarExp ID), formula1, formula2, (#1 LET, #2 END) ))
             |   lambda (lambda)
-            |   LPAREN formula formula RPAREN (AST.AppExp(formula1, formula2))
+            |   LPAREN formula formula RPAREN (AST.AppExp(formula1, formula2, (#1 LPAREN, #2 RPAREN)) )
 
             |   LPAREN formula RPAREN (formula1)
 
@@ -77,8 +77,8 @@ formula     :   IF formula THEN formula ELSE formula FI (AST.CondExp(formula1, f
             |   formula GREATERTHAN formula (AST.BinExp(AST.GreaterThan(GREATERTHAN), formula1, formula2))
             |   formula LESSTHAN formula (AST.BinExp(AST.LessThan(LESSTHAN), formula1, formula2))
 
-			      |	  NEGATE formula (AST.UnaryExp(AST.Negate(NEGATE), formula))            
-            |   NOT formula (AST.UnaryExp(AST.Not(NOT), formula))
+			      |	  NEGATE formula (AST.UnaryExp(AST.Negate(NEGATE), formula, #1 NEGATE))            
+            |   NOT formula (AST.UnaryExp( AST.Not(NOT), formula, #1 NOT))
             |   ID (AST.VarExp(ID))
             |   BOOLCONST (AST.BoolExp(BOOLCONST))
             |   INTCONST (AST.NumExp(INTCONST))

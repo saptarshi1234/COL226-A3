@@ -1,5 +1,3 @@
-
-val fileName = ref ""
 structure EVALUATOR = 
 struct 
   (* exception ReturnTypeMismatch of string
@@ -90,13 +88,13 @@ struct
       NumExp(_,num)                                           =>  NumVal(num)
     | BoolExp(_,b)                                            =>  BoolVal(b)
     | VarExp(loc,id)                                          =>  envLookup((loc, id), env)
-    | LetExp(VarExp(_,var_id), var_val, exp)                  =>  evaluate(exp, envAdd(var_id, evaluate(var_val, env), env))
+    | LetExp(VarExp(_,var_id), var_val, exp, _)                  =>  evaluate(exp, envAdd(var_id, evaluate(var_val, env), env))
     | BinExp(oper, exp1, exp2)                                =>  evalBinExp((oper, exp1, exp2), env)
-    | UnaryExp(unop, exp)                                     =>  evalUnaryExp((unop, exp), env)
-    | CondExp(exp1, exp2, exp3)                               =>  evaluateCondExp((exp1, exp2, exp3), env)
-    | AppExp(fexp, exp)                                       =>  applylambda(evaluate(fexp, env), exp, env)   (* evn or e ?? *)  
-    | FunctionExp(VarExp(_,name), VarExp(_,arg), typ1, typ2, exp) =>  FunVal(name, arg, typ1, typ2, exp, env)
-    | LambdaExp(VarExp(_,id), typ1, typ2, exp)                  =>  FunVal("", id, typ1, typ2, exp, env)
+    | UnaryExp(unop, exp, _)                                     =>  evalUnaryExp((unop, exp), env)
+    | CondExp(exp1, exp2, exp3, _)                               =>  evaluateCondExp((exp1, exp2, exp3), env)
+    | AppExp(fexp, exp, _)                                       =>  applylambda(evaluate(fexp, env), exp, env)   (* evn or e ?? *)  
+    | FunctionExp(VarExp(_,name), VarExp(_,arg), typ1, typ2, exp, _) =>  FunVal(name, arg, typ1, typ2, exp, env)
+    | LambdaExp(VarExp(_,id), typ1, typ2, exp, _)                  =>  FunVal("", id, typ1, typ2, exp, env)
     | _                                                       =>  raise Fail("\n\t" ^ "broken5 types")
   )
   fun getLocStr exp = let 
@@ -106,9 +104,9 @@ struct
     (its l1) ^ "." ^ (its c1) ^ "-" ^ (its l2) ^ "." ^ (its c2)
   end
 
-  fun opErr(oper, expected_type, act_type, exp) = raise Fail("\n" ^ !fileName ^ ":" ^ getLocStr(exp) ^ " Error: operator and operand do not agree \n\t operator domain\t: " ^ expected_type ^ "\n\t operand\t\t\t: " ^ act_type ^ "\n\t in expression:\n\t\t" ^ (expToString exp) ) 
-  fun opNfn(expected_type, oper, exp)       = raise Fail("\n" ^ !fileName ^ ":"  ^ getLocStr(exp) ^ " Error: operator is not a function \n\t operator\t: [" ^ (expToString oper) ^ "] " ^ typeToString expected_type ^ "\n\t in expression :\n\t\t" ^ (expToString exp) ) 
-  fun fnErr(constraint, etype, exp)             = raise Fail("\n" ^ !fileName ^ ":"  ^ getLocStr(exp) ^ " Error: expression does not match return type constraint \n\t expression \t: " ^ (typeToString etype)^ "\n\t return type\t: " ^ (typeToString constraint) ^ "\n\t in expression:\n\t\t" ^ (expToString exp) )
+  fun opErr(oper, expected_type, act_type, exp) = raise Fail("\n" ^ !fileName ^ ": " ^ getLocStr(exp) ^ " Error: operator and operand do not agree \n\t operator domain\t: " ^ expected_type ^ "\n\t operand\t\t\t: " ^ act_type ^ "\n\t in expression:\n\t\t" ^ (expToString exp) ) 
+  fun opNfn(expected_type, oper, exp)       = raise Fail("\n" ^ !fileName ^ ": "  ^ getLocStr(exp) ^ " Error: operator is not a function \n\t operator\t: [" ^ (expToString oper) ^ "] " ^ typeToString expected_type ^ "\n\t in expression :\n\t\t" ^ (expToString exp) ) 
+  fun fnErr(constraint, etype, exp)             = raise Fail("\n" ^ !fileName ^ ": "  ^ getLocStr(exp) ^ " Error: expression does not match return type constraint \n\t expression \t: " ^ (typeToString etype)^ "\n\t return type\t: " ^ (typeToString constraint) ^ "\n\t in expression:\n\t\t" ^ (expToString exp) )
 
   fun compose (t1: typ, t2:typ) = "(" ^ typeToString(t1) ^ " * " ^ typeToString(t2) ^ ")" 
 
@@ -117,7 +115,7 @@ struct
       NumExp(_,num)                                             =>  Int
     | BoolExp(_,b)                                              =>  Bool
     | VarExp(loc,id)                                            =>  envLookup ((loc, id), env)
-    | LetExp(VarExp(_,var_id), var_val, exp)                    =>  computeTypes (exp, envAdd(var_id, computeTypes(var_val, env), env) )
+    | LetExp(VarExp(_,var_id), var_val, exp, _)                    =>  computeTypes (exp, envAdd(var_id, computeTypes(var_val, env), env) )
     | BinExp(oper, exp1, exp2)                                  =>  
         let 
           val t1 = computeTypes (exp1, env)
@@ -134,7 +132,7 @@ struct
         | Implies(_)       => if t1 = Bool andalso t2 = Bool then Bool else raise opErr(binopToString oper,compose(Bool, Bool), compose(t1,t2), ast)
         | Equals(_)        => if (t1 = Bool andalso t2 = Bool) orelse (t1 = Int andalso t2 = Int) then Bool else opErr(binopToString oper, compose (Int,Int) ^ " or " ^ compose(Bool,Bool), compose(t1,t2), ast)
         end
-    | UnaryExp(oper, exp)                                     =>
+    | UnaryExp(oper, exp, _)                                     =>
         let val t = computeTypes (exp, env)
         in case oper of 
           Not(_)     => if t = Bool then Bool else raise opErr(unopToString oper, typeToString Bool, typeToString t, exp)
@@ -142,7 +140,7 @@ struct
         end
 
 
-    | CondExp(exp1, exp2, exp3)                               =>  
+    | CondExp(exp1, exp2, exp3, _)                               =>  
         let
           val t1 = computeTypes (exp1, env)
           val t2 = computeTypes (exp2, env)
@@ -150,14 +148,14 @@ struct
 
           val loc_str = getLocStr ast
         in
-          if t1 <> Bool then raise Fail("\n" ^ !fileName ^ ":"  ^ loc_str ^ " Error: conditional expression in IF is not a boolean expression \n\t conditional expression\t: [" ^ (expToString exp1) ^ "] - " ^ typeToString(t1) ^ "\n\t in expression:\n\t\t" ^ (expToString ast) ) 
-          else if t2 <> t3 then raise Fail("\n" ^ !fileName ^ ":"  ^ loc_str ^ " Error: types of IF branches do not agree \n\t then branch\t: " ^ typeToString(t2) ^ "\n\t else branch\t: " ^ typeToString(t3) ^ "\n\t in expession: \n\t\t" ^ (expToString ast))
+          if t1 <> Bool then raise Fail("\n" ^ !fileName ^ ": "  ^ loc_str ^ " Error: conditional expression in IF is not a boolean expression \n\t conditional expression\t: [" ^ (expToString exp1) ^ "] - " ^ typeToString(t1) ^ "\n\t in expression:\n\t\t" ^ (expToString ast) ) 
+          else if t2 <> t3 then raise Fail("\n" ^ !fileName ^ ": "  ^ loc_str ^ " Error: types of IF branches do not agree \n\t then branch\t: " ^ typeToString(t2) ^ "\n\t else branch\t: " ^ typeToString(t3) ^ "\n\t in expession: \n\t\t" ^ (expToString ast))
           else t2
         end
 
           
 
-    | AppExp(fexp, exp)                                       =>   
+    | AppExp(fexp, exp, _)                                       =>   
         let 
           val funType = computeTypes (fexp, env) 
           val actualParamsType = computeTypes (exp, env) 
@@ -167,7 +165,7 @@ struct
           | _                                   => opNfn(funType, fexp, ast) 
         end
 
-    | FunctionExp(VarExp(_,name), VarExp(_,arg), typ1, typ2, exp) =>  
+    | FunctionExp(VarExp(_,name), VarExp(_,arg), typ1, typ2, exp, _) =>  
         let 
           val bodyType = computeTypes (exp, envAdd( name, Arrow(typ1, typ2), envAdd(arg, typ1, env)) )
         in 
@@ -175,7 +173,7 @@ struct
           else fnErr(typ2, bodyType, ast)
         end 
 
-    | LambdaExp(VarExp(_,arg), typ1, typ2, exp)                  =>  
+    | LambdaExp(VarExp(_,arg), typ1, typ2, exp, _)                  =>  
         let 
           val bodyType = computeTypes (exp, envAdd(arg, typ1, env)) 
         in 

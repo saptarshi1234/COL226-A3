@@ -1,5 +1,5 @@
 let 
-  f = ((fn (x:int):int => 23) 12)
+  val f = ((fn (x:int):int => 23) 12)
 in
-  (f 12)
+  ( ((fn (x:int):int => 23) 12) 12)
 end
