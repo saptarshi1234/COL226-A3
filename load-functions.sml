@@ -8,7 +8,7 @@ structure BoolParser =
 val err_str = ref ""
 fun invoke lexstream =
     	     	let fun print_error (s,pos:int,col:int) = 
-		    		(err_str := (!err_str) ^ "Syntax Error:" ^ (Int.toString pos) ^ ":" ^ (Int.toString col) ^":"^ s ^ "\n" ) 
+		    		(err_str := ( (!err_str) ^ WARNING ^ !fileName ^ ENDC ^ " " ^ HEADER ^ BOLD ^ (Int.toString pos) ^ ":" ^ (Int.toString col) ^ ENDC ^":"^ s ^ "\n" ) ) 
 		in
 		    BoolParser.parse(0,lexstream,print_error,())
 		end
@@ -39,16 +39,16 @@ fun evaluateListInternal ([], env, env_types, index) = []
     let 
       open AST
       val _ = if !verbose then (
-        print ("Expression " ^ (Int.toString index) ^ " ::\n");
-        print ("Text \t: " ^ expToString(a) ^ "\n");
-        print ("AST \t: " ^ (expToTree a) ^ "\n")
+        print (GREEN ^ "Expression " ^ ENDC ^ (Int.toString index) ^ " ::\n");
+        print (OKBLUE ^ "Text \t: " ^ ENDC ^ expToString(a) ^ "\n");
+        print (OKBLUE ^ "AST \t: " ^ ENDC ^ (expToTree a) ^ "\n")
       ) else ()
 
       val curr_type = EVALUATOR.computeTypes(a, env_types) 
       (*val curr_type = Int*)
       (* val _ = print "type checking passed\n" *)
       val ans = EVALUATOR.evaluate(a, env)
-      val _ = print ("Value\t: " ^ (valToString ans) ^ "\n" )
+      val _ = print (OKBLUE ^ "Value\t: " ^ ENDC ^ HEADER ^ (valToString ans) ^ "\n" ^ ENDC )
       val (env, env_types) = case ans of 
          FunVal("", arg, typ1, typ2, exp, params)   => (env, env_types)
       |  FunVal(name, arg, typ1, typ2, exp, params) => (envAdd(name, ans, env), envAdd(name, curr_type, env_types))

@@ -1,10 +1,5 @@
 structure EVALUATOR = 
 struct 
-  (* exception ReturnTypeMismatch of string
-  exception ArgumentTypeMismatch of string
-  exception OperatorOperandMismatch of string
-  exception OperatorNotFunction of string *)
-
   open AST
 
   fun xor a b = (a andalso not b) orelse (not a andalso b)
@@ -104,9 +99,9 @@ struct
     (its l1) ^ "." ^ (its c1) ^ "-" ^ (its l2) ^ "." ^ (its c2)
   end
 
-  fun opErr(oper, expected_type, act_type, exp) = raise Fail("\n" ^ !fileName ^ ": " ^ getLocStr(exp) ^ " Error: operator and operand do not agree \n\t operator domain\t: " ^ expected_type ^ "\n\t operand\t\t\t: " ^ act_type ^ "\n\t in expression:\n\t\t" ^ (expToString exp) ) 
-  fun opNfn(expected_type, oper, exp)       = raise Fail("\n" ^ !fileName ^ ": "  ^ getLocStr(exp) ^ " Error: operator is not a function \n\t operator\t: [" ^ (expToString oper) ^ "] " ^ typeToString expected_type ^ "\n\t in expression :\n\t\t" ^ (expToString exp) ) 
-  fun fnErr(constraint, etype, exp)             = raise Fail("\n" ^ !fileName ^ ": "  ^ getLocStr(exp) ^ " Error: expression does not match return type constraint \n\t expression \t: " ^ (typeToString etype)^ "\n\t return type\t: " ^ (typeToString constraint) ^ "\n\t in expression:\n\t\t" ^ (expToString exp) )
+  fun opErr(oper, expected_type, act_type, exp) = raise Fail(errBody(getLocStr exp) ^ "operator and operand do not agree \n\t operator domain\t: " ^ expected_type ^ "\n\t operand\t\t\t: " ^ act_type ^ "\n\t in expression:\n\t\t" ^ HEADER ^ (expToString exp) ^ ENDC ) 
+  fun opNfn(expected_type, oper, exp)       = raise Fail(errBody(getLocStr exp) ^ "operator is not a function \n\t operator\t: [" ^ (expToString oper) ^ "] " ^ typeToString expected_type ^ "\n\t in expression :\n\t\t" ^ HEADER ^ (expToString exp) ^ ENDC ) 
+  fun fnErr(constraint, etype, exp)             = raise Fail(errBody(getLocStr exp) ^ "expression does not match return type constraint \n\t expression \t: " ^ (typeToString etype)^ "\n\t return type\t: " ^ (typeToString constraint) ^ "\n\t in expression:\n\t\t" ^ HEADER ^ (expToString exp) ^ ENDC )
 
   fun compose (t1: typ, t2:typ) = "(" ^ typeToString(t1) ^ " * " ^ typeToString(t2) ^ ")" 
 
@@ -148,8 +143,8 @@ struct
 
           val loc_str = getLocStr ast
         in
-          if t1 <> Bool then raise Fail("\n" ^ !fileName ^ ": "  ^ loc_str ^ " Error: conditional expression in IF is not a boolean expression \n\t conditional expression\t: [" ^ (expToString exp1) ^ "] - " ^ typeToString(t1) ^ "\n\t in expression:\n\t\t" ^ (expToString ast) ) 
-          else if t2 <> t3 then raise Fail("\n" ^ !fileName ^ ": "  ^ loc_str ^ " Error: types of IF branches do not agree \n\t then branch\t: " ^ typeToString(t2) ^ "\n\t else branch\t: " ^ typeToString(t3) ^ "\n\t in expession: \n\t\t" ^ (expToString ast))
+          if t1 <> Bool then raise Fail(errBody(loc_str) ^ "conditional expression in IF is not a boolean expression \n\t conditional expression\t: [" ^ (expToString exp1) ^ "] - " ^ typeToString(t1) ^ "\n\t in expression:\n\t\t" ^ HEADER ^ (expToString ast) ^ ENDC ) 
+          else if t2 <> t3 then raise Fail(errBody(loc_str) ^ "types of IF branches do not agree \n\t then branch\t: " ^ typeToString(t2) ^ "\n\t else branch\t: " ^ typeToString(t3) ^ "\n\t in expression: \n\t\t" ^ HEADER ^ (expToString ast) ^ ENDC)
           else t2
         end
 

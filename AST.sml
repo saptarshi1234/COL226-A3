@@ -1,4 +1,15 @@
 val fileName = ref ""
+
+val HEADER = "\027[95m"
+val OKBLUE = "\027[94m"
+val GREEN  = "\027[32m"
+val OKGREEN = "\027[90m"
+val WARNING = "\027[93m"
+val FAIL = "\027[91m"
+val ENDC = "\027[0m"
+val BOLD = "\027[1m"
+val UNDERLINE = "\027[4m"
+
 structure AST =
 struct
   (* type loc = int * (int*int) *)
@@ -106,13 +117,14 @@ struct
   
   fun getLocStr exp = locToStr (getLineColRange exp)
 
+  fun errBody p = "\n" ^ WARNING ^ !fileName ^ ENDC ^ ": " ^ HEADER ^ p ^ ENDC ^ FAIL ^ " Error: " ^ ENDC
 
   val itss = Int.toString
   
   fun envLookup (( p, var:id ), env) =
     case List.find (fn (x, _) => x = var ) env of
       SOME (x, v) => v
-    | NONE => raise Fail("\n" ^ !fileName ^ ": " ^ locToStr p ^ " Error: could not find variable: " ^ var)
+    | NONE => raise Fail(errBody(locToStr p) ^ "could not find variable: " ^ var)
 
 
   fun envAdd(var : id , v , env) =
