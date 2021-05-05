@@ -92,7 +92,7 @@ struct
     | VarExp(_,id)                                                      =>  id
     | LetExp(var_exp, var_val, exp, _)                                  =>  "LetExp\n" ^ h1 ^ expToTree(var_exp, pf1) ^ "\n" ^ h1 ^ expToTree(var_val, pf1) ^ "\n" ^ h2 ^ expToTree(exp,pf2)
     | BinExp(oper, exp1, exp2)                                          =>  binopToString(oper) ^ "\n" ^ h1 ^ expToTree(exp1,pf1) ^ "\n" ^ h2 ^ expToTree(exp2,pf2)
-    | UnaryExp(unop, exp, _)                                            =>  unopToString(unop) ^ "\n" ^ h2 ^ expToTree(exp,pf2) ^ "\n"
+    | UnaryExp(unop, exp, _)                                            =>  unopToString(unop) ^ "\n" ^ h2 ^ expToTree(exp,pf2)
     | CondExp(exp1, exp2, exp3, _)                                      =>  "CondExp\n" ^ h1 ^ expToTree(exp1, pf1) ^ "\n" ^  h1 ^ expToTree(exp2, pf1) ^ "\n" ^ h2 ^ expToTree(exp3, pf2)
     | AppExp(fexp, exp, _)                                              =>  "Apply\n" ^ h1 ^ expToTree(fexp, pf1) ^ "\n" ^ h2 ^ expToTree(exp, pf2) 
     | FunctionExp(VarExp(_,name), VarExp(_,arg), typ1, typ2, exp, _)    =>  "Fun\n" ^ h1 ^ name ^ " " ^ arg ^ " : " ^ typeToString(Arrow(typ1, typ2)) ^ "\n" ^ h2 ^ expToTree(exp, pf2)
