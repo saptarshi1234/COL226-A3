@@ -1,7 +1,7 @@
 all:
 	mllex bool.lex
 	mlyacc bool.yacc
-	mlton -output a3 bundler.mlb
+	mlton -output a3 -default-ann 'allowExtendedTextConsts true' bundler.mlb 
 
 rebuild: clean all
 

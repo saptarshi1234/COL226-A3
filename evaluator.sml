@@ -83,7 +83,7 @@ struct
       NumExp(_,num)                                           =>  NumVal(num)
     | BoolExp(_,b)                                            =>  BoolVal(b)
     | VarExp(loc,id)                                          =>  envLookup((loc, id), env)
-    | LetExp(VarExp(_,var_id), var_val, exp, _)                  =>  evaluate(exp, envAdd(var_id, evaluate(var_val, env), env))
+    | LetExp(VarExp(_,var_id), var_val, exp, _)               =>  evaluate(exp, envAdd(var_id, evaluate(var_val, env), env))
     | BinExp(oper, exp1, exp2)                                =>  evalBinExp((oper, exp1, exp2), env)
     | UnaryExp(unop, exp, _)                                     =>  evalUnaryExp((unop, exp), env)
     | CondExp(exp1, exp2, exp3, _)                               =>  evaluateCondExp((exp1, exp2, exp3), env)
@@ -116,22 +116,22 @@ struct
           val t1 = computeTypes (exp1, env)
           val t2 = computeTypes (exp2, env)
         in case oper of 
-          Plus(_)          => if t1 = Int andalso t2 = Int then Int else raise opErr(binopToString oper,compose(Int, Int), compose(t1,t2), ast)
-        | Minus(_)         => if t1 = Int andalso t2 = Int then Int else raise opErr(binopToString oper,compose(Int, Int), compose(t1,t2), ast)
-        | Times(_)         => if t1 = Int andalso t2 = Int then Int else raise opErr(binopToString oper,compose(Int, Int), compose(t1,t2), ast)
-        | GreaterThan(_)   => if t1 = Int andalso t2 = Int then Bool else raise opErr(binopToString oper,compose(Int, Int), compose(t1,t2), ast)
-        | LessThan(_)      => if t1 = Int andalso t2 = Int then Bool else raise opErr(binopToString oper,compose(Int, Int), compose(t1,t2), ast)
-        | And(_)           => if t1 = Bool andalso t2 = Bool then Bool else raise opErr(binopToString oper,compose(Bool, Bool), compose(t1,t2), ast)
-        | Or(_)            => if t1 = Bool andalso t2 = Bool then Bool else raise opErr(binopToString oper,compose(Bool, Bool), compose(t1,t2), ast)
-        | Xor(_)           => if t1 = Bool andalso t2 = Bool then Bool else raise opErr(binopToString oper,compose(Bool, Bool), compose(t1,t2), ast)
-        | Implies(_)       => if t1 = Bool andalso t2 = Bool then Bool else raise opErr(binopToString oper,compose(Bool, Bool), compose(t1,t2), ast)
+          Plus(_)          => if t1 = Int andalso t2 = Int then Int else opErr(binopToString oper,compose(Int, Int), compose(t1,t2), ast)
+        | Minus(_)         => if t1 = Int andalso t2 = Int then Int else opErr(binopToString oper,compose(Int, Int), compose(t1,t2), ast)
+        | Times(_)         => if t1 = Int andalso t2 = Int then Int else opErr(binopToString oper,compose(Int, Int), compose(t1,t2), ast)
+        | GreaterThan(_)   => if t1 = Int andalso t2 = Int then Bool else opErr(binopToString oper,compose(Int, Int), compose(t1,t2), ast)
+        | LessThan(_)      => if t1 = Int andalso t2 = Int then Bool else opErr(binopToString oper,compose(Int, Int), compose(t1,t2), ast)
+        | And(_)           => if t1 = Bool andalso t2 = Bool then Bool else opErr(binopToString oper,compose(Bool, Bool), compose(t1,t2), ast)
+        | Or(_)            => if t1 = Bool andalso t2 = Bool then Bool else opErr(binopToString oper,compose(Bool, Bool), compose(t1,t2), ast)
+        | Xor(_)           => if t1 = Bool andalso t2 = Bool then Bool else opErr(binopToString oper,compose(Bool, Bool), compose(t1,t2), ast)
+        | Implies(_)       => if t1 = Bool andalso t2 = Bool then Bool else opErr(binopToString oper,compose(Bool, Bool), compose(t1,t2), ast)
         | Equals(_)        => if (t1 = Bool andalso t2 = Bool) orelse (t1 = Int andalso t2 = Int) then Bool else opErr(binopToString oper, compose (Int,Int) ^ " or " ^ compose(Bool,Bool), compose(t1,t2), ast)
         end
     | UnaryExp(oper, exp, _)                                     =>
         let val t = computeTypes (exp, env)
         in case oper of 
-          Not(_)     => if t = Bool then Bool else raise opErr(unopToString oper, typeToString Bool, typeToString t, exp)
-        | Negate(_)  => if t = Int then Int else raise opErr(unopToString oper, typeToString Int, typeToString t, exp)
+          Not(_)     => if t = Bool then Bool else opErr(unopToString oper, typeToString Bool, typeToString t, exp)
+        | Negate(_)  => if t = Int then Int else opErr(unopToString oper, typeToString Int, typeToString t, exp)
         end
 
 
