@@ -50,7 +50,7 @@ type loc = (int * int) * (int * int)
 
 %%
 start       :   program (program)
-program     :   expression TERM program (expression :: program) | expression ([expression])
+program     :   expression TERM program (expression :: program) | expression ([expression]) | expression TERM ([expression])
 expression  :   formula (formula) 
             |   FUN ID LPAREN ID COLON typ RPAREN COLON typ ARROWDEF formula (AST.FunctionExp( (AST.VarExp ID1), (AST.VarExp ID2), typ1, typ2, formula, (#1 FUN) ))
 

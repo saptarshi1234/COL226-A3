@@ -33,6 +33,7 @@ fun parse (lexer) =
 	handle ParseError => (print(!err_str); OS.Process.exit(OS.Process.failure) [""])
 
 val verbose = ref true
+val error_occ = ref false
 
 fun evaluateListInternal ([], env, env_types, index) = []
 |   evaluateListInternal ((a::x), env, env_types, index) = 
@@ -44,17 +45,22 @@ fun evaluateListInternal ([], env, env_types, index) = []
         print (OKBLUE ^ "AST \t:\t" ^ ENDC ^ (expToTree (a, "\t\t\t")) ^ "\n")
       ) else ()
 
-      val curr_type = EVALUATOR.computeTypes(a, env_types) 
-      (*val curr_type = Int*)
-      (* val _ = print "type checking passed\n" *)
-      val ans = EVALUATOR.evaluate(a, env)
-      val _ = print (OKBLUE ^ "Value\t: " ^ ENDC ^ HEADER ^ (valToString ans) ^ "\n" ^ ENDC )
-      val (env, env_types) = case ans of 
-         FunVal("", arg, typ1, typ2, exp, params)   => (env, env_types)
-      |  FunVal(name, arg, typ1, typ2, exp, params) => (envAdd(name, ans, env), envAdd(name, curr_type, env_types))
-      | _ => (env, env_types)
+      val curr_type = EVALUATOR.computeTypes(a, env_types) handle Fail(s) => (print(s ^ "\n");error_occ := true;Int)
+      val ans = if not (!error_occ) then EVALUATOR.evaluate(a, env) else NumVal(1)
 
-      val _ = print("\n")
+      val _ = if not (!error_occ) then print (OKBLUE ^ "Value\t: " ^ ENDC ^ HEADER ^ (valToString ans) ^ "\n" ^ ENDC ) else ()
+      
+      val (env, env_types) = if not (!error_occ) then 
+        case ans of 
+            FunVal("", arg, typ1, typ2, exp, params)    => (env, env_types)
+        |   FunVal(name, arg, typ1, typ2, exp, params)  => (envAdd(name, ans, env), envAdd(name, curr_type, env_types))
+        | _                                             => (env, env_types)
+      else 
+        case a of 
+            FunctionExp(VarExp(_,name), _, typ1, typ2, _,_) => (env, envAdd(name, Arrow(typ1, typ2), env_types) )
+            | _ => (env, env_types)
+
+      val _ = print("\n\n\n")
 
     in
         (   
