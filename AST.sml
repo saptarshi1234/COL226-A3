@@ -55,6 +55,11 @@ struct
   | Bool          =>  "bool"
   | Arrow(t1,t2)  =>  "(" ^ (typeToString t1) ^ "->" ^ (typeToString t2) ^ ")"
 
+  fun typeToASTString(t:typ) = case t of
+    Int           =>  OKBLUE ^ "INT" ^ ENDC
+  | Bool          =>  OKBLUE ^ "BOOL" ^ ENDC
+  | Arrow(t1,t2)  =>  OKBLUE ^ "ARROW" ^ ENDC ^ "(" ^ typeToASTString t1 ^ "," ^ typeToASTString t2 ^ ")"
+
   val getTypeString = typeToString o getType
 
   fun valToString value = 
@@ -68,7 +73,7 @@ struct
   fun expToString (exp) = 
     case exp of 
       NumExp(_,num)                                           =>  Int.toString num
-    | BoolExp(_,b)                                            =>  Bool.toString b
+    | BoolExp(_,b)                                            =>  if b then "TRUE" else "FALSE"
     | VarExp(_,id)                                            =>  id
     | LetExp(VarExp(_,var_id), var_val, exp,_)                =>  "let " ^ var_id ^ " = " ^ expToString(var_val) ^ " in " ^ expToString(exp) ^ " end"
     | BinExp(oper, exp1, exp2)                                =>  expToString(exp1) ^ " " ^ binopToString(oper) ^ " " ^ expToString(exp2)
@@ -81,22 +86,22 @@ struct
 
   fun expToTree (exp, prefix) = 
   let 
-    val pf1 = prefix ^ "│\t"
-    val pf2 = prefix ^ "\t"
-    val h1 =  prefix ^ "├── "
-    val h2 =  prefix ^ "└── "
+    val pf1 = prefix ^ GREEN ^ "│   " ^ ENDC
+    val pf2 = prefix ^ GREEN ^ "    " ^ ENDC
+    val h1 =  prefix ^ GREEN ^ "├── " ^ ENDC
+    val h2 =  prefix ^ GREEN ^ "└── " ^ ENDC
   in
     case exp of 
       NumExp(_,num)                                                     =>  Int.toString num
-    | BoolExp(_,b)                                                      =>  Bool.toString b
+    | BoolExp(_,b)                                                      =>  if b then "TRUE" else "FALSE"
     | VarExp(_,id)                                                      =>  id
-    | LetExp(var_exp, var_val, exp, _)                                  =>  "LetExp\n" ^ h1 ^ expToTree(var_exp, pf1) ^ "\n" ^ h1 ^ expToTree(var_val, pf1) ^ "\n" ^ h2 ^ expToTree(exp,pf2)
-    | BinExp(oper, exp1, exp2)                                          =>  binopToString(oper) ^ "\n" ^ h1 ^ expToTree(exp1,pf1) ^ "\n" ^ h2 ^ expToTree(exp2,pf2)
-    | UnaryExp(unop, exp, _)                                            =>  unopToString(unop) ^ "\n" ^ h2 ^ expToTree(exp,pf2)
-    | CondExp(exp1, exp2, exp3, _)                                      =>  "CondExp\n" ^ h1 ^ expToTree(exp1, pf1) ^ "\n" ^  h1 ^ expToTree(exp2, pf1) ^ "\n" ^ h2 ^ expToTree(exp3, pf2)
-    | AppExp(fexp, exp, _)                                              =>  "Apply\n" ^ h1 ^ expToTree(fexp, pf1) ^ "\n" ^ h2 ^ expToTree(exp, pf2) 
-    | FunctionExp(VarExp(_,name), VarExp(_,arg), typ1, typ2, exp, _)    =>  "Fun\n" ^ h1 ^ name ^ " " ^ arg ^ " : " ^ typeToString(Arrow(typ1, typ2)) ^ "\n" ^ h2 ^ expToTree(exp, pf2)
-    | LambdaExp(VarExp(_,arg), typ1, typ2, exp,_)                       =>  "Fn\n" ^ h1 ^ arg ^ " : " ^ typeToString(Arrow(typ1, typ2)) ^ "\n" ^ h2 ^ expToTree(exp, pf2)
+    | LetExp(var_exp, var_val, exp, _)                                  =>  WARNING ^ "LetExp\n" ^ ENDC ^ h1 ^ expToTree(var_exp, pf1) ^ "\n" ^ h1 ^ expToTree(var_val, pf1) ^ "\n" ^ h2 ^ expToTree(exp,pf2)
+    | BinExp(oper, exp1, exp2)                                          =>  WARNING ^ binopToString(oper) ^ ENDC ^ "\n" ^ h1 ^ expToTree(exp1,pf1) ^ "\n" ^ h2 ^ expToTree(exp2,pf2)
+    | UnaryExp(unop, exp, _)                                            =>  WARNING ^ unopToString(unop) ^ ENDC ^ "\n" ^ h2 ^ expToTree(exp,pf2)
+    | CondExp(exp1, exp2, exp3, _)                                      =>  WARNING ^ "CondExp\n" ^ ENDC ^ h1 ^ expToTree(exp1, pf1) ^ "\n" ^  h1 ^ expToTree(exp2, pf1) ^ "\n" ^ h2 ^ expToTree(exp3, pf2)
+    | AppExp(fexp, exp, _)                                              =>  WARNING ^ "Apply\n" ^ ENDC ^ h1 ^ expToTree(fexp, pf1) ^ "\n" ^ h2 ^ expToTree(exp, pf2) 
+    | FunctionExp(VarExp(_,name), VarExp(_,arg), typ1, typ2, exp, _)    =>  WARNING ^ "Fun " ^ ENDC ^ name ^ " : " ^ typeToASTString(typ2) ^ "\n" ^ h1 ^ arg ^ " : " ^ typeToASTString(typ1) ^ "\n" ^ h2 ^ expToTree(exp, pf2)
+    | LambdaExp(VarExp(_,arg), typ1, typ2, exp,_)                       =>  WARNING ^ "Fn : " ^ ENDC ^ typeToASTString(typ1) ^ "\n" ^ h1 ^ arg ^ " : " ^ typeToASTString(Arrow(typ1, typ2)) ^ "\n" ^ h2 ^ expToTree(exp, pf2)
     | _                                                                 =>  ""
   end
 

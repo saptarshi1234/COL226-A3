@@ -41,14 +41,14 @@ fun evaluateListInternal ([], env, env_types, index) = []
       open AST
       val _ = if !verbose then (
         print (GREEN ^ "Expression " ^ ENDC ^ (Int.toString index) ^ " ::\n");
-        print (OKBLUE ^ "Text \t:\t" ^ ENDC ^ expToString(a) ^ "\n");
-        print (OKBLUE ^ "AST \t:\t" ^ ENDC ^ (expToTree (a, "\t\t\t")) ^ "\n")
+        print ("Text \t:  " ^ expToString(a) ^ "\n");
+        print ("AST \t:  " ^ (expToTree (a, "\t   ")) ^ "\n")
       ) else ()
 
       val curr_type = EVALUATOR.computeTypes(a, env_types) handle Fail(s) => (print(s ^ "\n");error_occ := true;Int)
       val ans = if not (!error_occ) then EVALUATOR.evaluate(a, env) else NumVal(1)
 
-      val _ = if not (!error_occ) then print (OKBLUE ^ "Value\t: " ^ ENDC ^ HEADER ^ (valToString ans) ^ "\n" ^ ENDC ) else ()
+      val _ = if not (!error_occ) then print ("Value  : " ^ HEADER ^ (valToString ans) ^ "\n" ^ ENDC ) else ()
       
       val (env, env_types) = if not (!error_occ) then 
         case ans of 

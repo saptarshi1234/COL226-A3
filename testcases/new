@@ -1,5 +1,0 @@
-fun f (c:int):int => 1;
-fun g (x:int):int => (f 1);
-fun f (c:int):int => 2;
-
-(g 1)
