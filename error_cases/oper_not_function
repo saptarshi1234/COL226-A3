@@ -1,5 +1,0 @@
-let 
-  f = ((fn (x:int):int => 23) 12)
-in
-  ( ((fn (x:int):int => 23) 12) 12)
-end

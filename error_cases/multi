@@ -1,5 +1,0 @@
-3 PLUS 45;
-if 2 then 2 else 2 fi;
-if TRUE then 2 else FALSE fi;
-fun f (x:int):int => x PLUS y;
-(f 12);

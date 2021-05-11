@@ -1,7 +1,0 @@
-if 
-  TRUE 
-then 
-  12 
-else 
-  FALSE
-fi

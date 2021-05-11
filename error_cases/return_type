@@ -1,1 +1,0 @@
-fun f (x:int):bool => 12

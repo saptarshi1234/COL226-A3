@@ -1,5 +1,0 @@
-let
-	f=fn(x:int):(int->int) => if TRUE then fn(y:int):int => y PLUS 1 else fn(y:int):int => y fi
-in
-	((f 1) 2)
-end
